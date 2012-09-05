@@ -1,0 +1,6 @@
+; $Id$
+name = InvDB: OSOS JZ inventory database interaction
+description = handles inventory database interaction
+package = OSOS JZ team inventory
+core = 7.x
+files[] = invdb.module

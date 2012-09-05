@@ -1,0 +1,82 @@
+<?php
+// $Id: input.module,v 1.5 2012/08/22 12:52:18 stephen Exp stephen $
+
+
+/**
+ * @file  input.module
+ * 
+ *
+ * input for system inventory data
+ */
+
+
+
+/**
+ * Implements hook_menu().
+ */
+function input_menu() {
+  $items = array();
+  $items['input/inv'] = array(
+    'title' => "Inventory Data Input",
+    'description' => 'data input',
+    //'page callback' => 'drupal_get_form',
+    'page callback' => 'input_example_intro',
+    'page arguments' => array('input_inventory_form'),
+    'access callback' => TRUE,
+    'expanded' => TRUE,
+     ); // $items['input/inventory']
+
+
+
+  $items['input/inv/bs'] = array(
+    'title' => 'Base System Data',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('input_base_data_1'),
+    'access callback' => TRUE,
+    'description' => 'base data input',
+    'file' => 'input_base_data.inc',
+    'type' => MENU_NORMAL_ITEM,
+  );
+ 
+  $items['input/inv/os'] = array(
+    'title' => 'Operating System Data',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('input_os_data_1'),
+    'access callback' => TRUE,
+    'description' => 'base data input',
+    'file' => 'input_os_data.inc',
+    //'file' => 'input_os_data.inc.~1.4~',
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  
+  $items['input/inv/sys'] = array(
+    'title' => 'System Info File Data',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('input_os_data_1'),
+    'access callback' => TRUE,
+    'description' => 'base data input',
+    'file' => 'input_sys_data.inc',
+    'type' => MENU_NORMAL_ITEM,
+  );
+ 
+
+
+
+  return $items;
+} // function input_menu()
+
+
+
+
+
+/**
+ * Page callback for our general info page.
+ */
+function input_example_intro() {
+  $markup = t('to-do  provide system data collectoins');
+  return array('#markup' => $markup);
+}
+
+
+

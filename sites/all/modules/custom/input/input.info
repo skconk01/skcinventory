@@ -1,0 +1,6 @@
+; $Id: input.info,v 1.1 2012/08/22 12:51:30 stephen Exp $
+name = Input: OSOS JZ Inventory Data Input
+description = form for inventory data input
+package = OSOS JZ team inventory
+core = 7.x
+files[] = input.module
