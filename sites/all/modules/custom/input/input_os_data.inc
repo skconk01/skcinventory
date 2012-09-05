@@ -13,8 +13,8 @@
 
 
 function input_os_data_1($form, &$form_state, $no_js_use = FALSE) {
-  
-  global $user;
+
+global $user;
   $name;
   if(isset($user->name)){
     $name = $user->name;
@@ -25,15 +25,10 @@ function input_os_data_1($form, &$form_state, $no_js_use = FALSE) {
     );
     return $form;
    }
-    
-  
-
-  $form['description'] = array(
-    '#type' => 'item',
-    '#title' => t('This form will collect the OS  information about your system. <br \>'),
-  );
+   
 
 
+  //$computer_list = drupal_map_assoc( array('bonk', 'chobani', 'tiger', ));
 
 // get a list of computers used by this user
   $computer_list = invdb_get_computer_list($name);
@@ -47,168 +42,216 @@ function input_os_data_1($form, &$form_state, $no_js_use = FALSE) {
     $lst[$inv_id] = $computer->hostname;
   }
   
- 
-// Added AJAX callback.
-  $form['computer_name']['name'] = array(
-    '#title' => t('Select the hostame of the system the info file is related to.'),
-    '#type' => 'radios',
-    '#options' => $lst,
-    '#ajax' => array(
-      //'callback' => 'input_os_data_ajax_callback',
-        'callback' => 'ajax_example_add_more',
-	'wrapper' => 'skc_wrapper',
-      //'wrapper' => 'names-fieldset-wrapper',
-     ),
-  );
-  
-  // Setting an empty element with a wrapper to be populated.
-  $form['computer_name']['os_data'] = array(
-    '#type' => 'markup',
-    '#prefix' => '<div id="skc_wrapper">',
-    '#suffix' => '</div>',
-  );
-  
 
-  
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => 'Submit',
-  );
-
-  //-----------------------------------------------------------------------------
-  return $form;
-}
+  // Provide a wrapper around the entire form, since we'll replace the whole
+  // thing with each submit.
+  $form['#prefix'] = '<div id="wonk-form-wrapper">';
+  $form['#suffix'] = '</div>';
+  $form['#tree'] = TRUE; // We want to deal with hierarchical form values.
 
 
-/**
- * AJAX callback for OS verification.
- */
-function input_os_data_ajax_callback($form, $form_state) {
-
-  return $form['computer_name']['os_data'];
-}
-
-
-  //===================================================================================================
-/**
- * function from ajax exampel
- *
- */
-function ajax_example_add_more($form, &$form_state, $no_js_use = FALSE) {
   $form['description'] = array(
-    '#markup' => '<div>' . t('This example shows an add-more and a remove-last button. The <a href="!ajax">AJAX version</a> does it without page reloads; the <a href="!multistep">non-js version</a> is the same code but simulates a non-javascript environment, showing it with page reloads.',
-      array('!ajax' => url('examples/ajax_example/add_more'), '!multistep' => url('examples/ajax_example/add_more_no_js')))
+    '#markup' => '<div>' . t(
+'This example is a step-by-step wizard. wonk style'
+)
     . '</div>',
   );
 
-  // Because we have many fields with the same values, we have to set
-  // #tree to be able to access them.
-  $form['#tree'] = TRUE;
-  $form['names_fieldset'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('People coming to the picnic'),
-    // Set up the wrapper so that AJAX will be able to replace the fieldset.
-    '#prefix' => '<div id="names-fieldset-wrapper">',
-    '#suffix' => '</div>',
-  );
+  // $form_state['storage'] has no specific drupal meaning, but it is
+  // traditional to keep variables for multistep forms there.
+  $step = empty($form_state['storage']['step']) ? 1 : $form_state['storage']['step'];
+  $form_state['storage']['step'] = $step;
 
   $stop = 'here';
   
-  // Build the fieldset with the proper number of names. We'll use
-  // $form_state['num_names'] to determine the number of textfields to build.
-  if (empty($form_state['num_names'])) {
-    $form_state['num_names'] = 1;
-  }
-  for ($i = 0; $i < $form_state['num_names']; $i++) {
-    $form['names_fieldset']['name'][$i] = array(
-      '#type' => 'textfield',
-      '#title' => t('Name'),
-    );
-  }
-  $form['names_fieldset']['add_name'] = array(
-    '#type' => 'submit',
-    '#value' => t('Add one more'),
-    '#submit' => array('ajax_example_add_more_add_one'),
-    // See the examples in ajax_example.module for more details on the
-    // properties of #ajax.
-    '#ajax' => array(
-      'callback' => 'ajax_example_add_more_callback',
-      'wrapper' => 'names-fieldset-wrapper',
-    ),
-  );
-  if ($form_state['num_names'] > 1) {
-    $form['names_fieldset']['remove_name'] = array(
+  switch ($step) {
+    case 1:
+      $form['step1'] = array(
+        '#type' => 'fieldset',
+        '#title' => t("Step 1: $name ==> Select Host Name of system the OS is associated with"),
+      );
+      $form['step1']['hostname'] = array(
+            '#type' => 'radios',
+	    '#options' => $lst, //$computer_list,
+        '#title' => t('Select the hostame of the system the info file is related to.'),
+        '#default_value' => empty($form_state['values']['step1']['hostname']) ? 'xx' : $form_state['values']['step1']['hostname'],
+        '#required' => TRUE,
+      );
+      break;
+
+//--------------------------------------------------------------------------
+    case 2:
+      $stop = 'here';
+      $hn = $form_state['values']['step1']['hostname'];
+      $form_state['hname'] = $hn;
+      $form['step2'] = array(
+        '#type' => 'fieldset',
+        '#title' => t("Step 2: Enter the Primay OS information for ==> $lst[$hn]"),
+      );
+
+      $form['step2']['os_type'] = array(
+					'#title' => t('Select Primary OS type'),
+					'#type' => 'select',
+					'#options' => array('W' => t('Windows'),  'L' => t('Linux'), 'S' => t('Solaris'), ),
+					'#default_value' => empty($form_state['values']['step2']['os_type']) ? '' : $form_state['values']['step2']['os_type'],
+					'#required' => TRUE,
+					);
+
+      $form['step2']['os_version'] = array(
+					   '#title' => t('your os version string'),
+					   '#type' => 'textfield',
+					   
+					   '#default_value' => empty($form_state['values']['step2']['os_version']) ? '' : $form_state['values']['step2']['os_version'],
+					   '#required' => TRUE,
+					   );
+
+      $form['step2']['os_secd_num'] = array(
+					    '#title' => t('Number of Secondary OS'),
+					    '#type' => 'select',
+					    '#options' => drupal_map_assoc(range(0, 5)),
+					    );
+
+      break;
+//--------------------------------------------------------------------------------------------
+
+    case 3:
+      $stop = 'here';
+      $hn = $form_state['hname'];
+      $sosnum = $form_state['values']['step2']['os_secd_num'];
+
+
+      for ($i = 0; $i < $sosnum; $i++){
+      $form['step3'][$i] = array(
+        '#type' => 'fieldset',
+        '#title' => t("Step 3: Enter secondary OS information for ==> $lst[$hn]"),
+      );
+
+      
+
+      $form['step3'][$i]['os_type'] = array(
+					'#title' => t('Select Secondary OS type'),
+					'#type' => 'select',
+					'#options' => array( 'W' => t('Windows'),  'L' => t('Linux'), 'S' => t('Solaris'), ),
+					//'#default_value' => empty($form_state['values']['step2']['os_type']) ? '' : $form_state['values']['step2']['os_type'],
+					'#required' => TRUE,
+                    '#wight' => $i,
+					);
+
+      $form['step3'][$i]['os_version'] = array(
+					   '#title' => t('your os version string'),
+					   '#type' => 'textfield',
+					  // '#default_value' => empty($form_state['values']['step2']['os_version']) ? '' : $form_state['values']['step2']['os_version'],
+					   '#required' => TRUE,
+                        '#wight' => $i +1,
+					   );
+
+      } //end for
+      
+      break;
+      //---------------------------------------------------------------------------------------------------
+
+  } // end of switch
+
+
+
+
+  if ($step > 1) {
+    $form['prev'] = array(
       '#type' => 'submit',
-      '#value' => t('Remove one'),
-      '#submit' => array('ajax_example_add_more_remove_one'),
+      '#value' => t("Previous step"),
+
+      // Since all info will be discarded, don't validate on 'prev'.
+      '#limit_validation_errors' => array(),
+      // #submit is required to use #limit_validation_errors
+      '#submit' => array('input_os_data_1_submit'),
       '#ajax' => array(
-        'callback' => 'ajax_example_add_more_callback',
-        'wrapper' => 'names-fieldset-wrapper',
+        'wrapper' => 'wonk-form-wrapper',
+        'callback' => 'input_os_data_1_callback',
       ),
     );
   }
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Submit'),
-  );
 
-  // This simply allows us to demonstrate no-javascript use without
-  // actually turning off javascript in the browser. Removing the #ajax
-  // element turns off AJAX behaviors on that element and as a result
-  // ajax.js doesn't get loaded.
-  // For demonstration only! You don't need this.
-  if ($no_js_use) {
-    // Remove the #ajax from the above, so ajax.js won't be loaded.
-    if (!empty($form['names_fieldset']['remove_name']['#ajax'])) {
-      unset($form['names_fieldset']['remove_name']['#ajax']);
-    }
-    unset($form['names_fieldset']['add_name']['#ajax']);
+
+
+  if ($step < 3) {
+    $form['next'] = array(
+      '#type' => 'submit',
+      '#value' => t('Next step'),
+      '#ajax' => array(
+        'wrapper' => 'wonk-form-wrapper',
+        'callback' => 'input_os_data_1_callback',
+      ),
+    );
   }
+
+  if ($step == 3) {
+    $form['submit'] = array(
+      '#type' => 'submit',
+      '#value' => t("Submit your information"),
+    );
+  }
+
+
+
+
 
   return $form;
 }
 
-/**
- * Callback for both ajax-enabled buttons.
- *
- * Selects and returns the fieldset with the names in it.
- */
-function ajax_example_add_more_callback($form, $form_state) {
-  return $form['names_fieldset'];
+function input_os_data_1_callback($form, $form_state) {
+  $stop ='here';
+  return $form;
 }
 
 /**
- * Submit handler for the "add-one-more" button.
+ * Submit function for ajax_example_wizard.
  *
- * Increments the max counter and causes a rebuild.
+ * In AJAX this is only submitted when the final submit button is clicked,
+ * but in the non-javascript situation, it is submitted with every
+ * button click.
  */
-function ajax_example_add_more_add_one($form, &$form_state) {
-  $form_state['num_names']++;
-  $form_state['rebuild'] = TRUE;
-}
+function input_os_data_1_submit($form, &$form_state) {
 
-/**
- * Submit handler for the "remove one" button.
- *
- * Decrements the max counter and causes a form rebuild.
- */
-function ajax_example_add_more_remove_one($form, &$form_state) {
-  if ($form_state['num_names'] > 1) {
-    $form_state['num_names']--;
+  $stop = 'here';  
+  
+  // Save away the current information.
+  $current_step = 'step' . $form_state['storage']['step'];
+  if (!empty($form_state['values'][$current_step])) {
+    $form_state['storage']['values'][$current_step] = $form_state['values'][$current_step];
   }
+
+  // Increment or decrement the step as needed. Recover values if they exist.
+  if ($form_state['triggering_element']['#value'] == t('Next step')) {
+    $form_state['storage']['step']++;
+    // If values have already been entered for this step, recover them from
+    // $form_state['storage'] to pre-populate them.
+    $step_name = 'step' . $form_state['storage']['step'];
+    if (!empty($form_state['storage']['values'][$step_name])) {
+      $form_state['values'][$step_name] = $form_state['storage']['values'][$step_name];
+    }
+  }
+  if ($form_state['triggering_element']['#value'] == t('Previous step')) {
+    $form_state['storage']['step']--;
+    // Recover our values from $form_state['storage'] to pre-populate them.
+    $step_name = 'step' . $form_state['storage']['step'];
+    $form_state['values'][$step_name] = $form_state['storage']['values'][$step_name];
+  }
+
+  // If they're done, submit.
+  if ($form_state['triggering_element']['#value'] == t('Submit your information')) {
+    $value_message = t('Your information has been submitted:') . ' ';
+    foreach ($form_state['storage']['values'] as $step => $values) {
+      $value_message .= "$step: ";
+      foreach ($values as $key => $value) {
+        $value_message .= "$key=$value, ";
+      }
+    }
+    drupal_set_message($value_message);
+    $form_state['rebuild'] = FALSE;
+    return;
+  }
+
+  // Otherwise, we still have work to do.
   $form_state['rebuild'] = TRUE;
 }
 
-/**
- * Final submit handler.
- *
- * Reports what values were finally set.
- */
-function ajax_example_add_more_submit($form, &$form_state) {
-  $output = t('These people are coming to the picnic: @names',
-    array('@names' => implode(', ', $form_state['values']['names_fieldset']['name'])) );
-  drupal_set_message($output);
-}
-/**
- * @} End of "defgroup ajax_degradation_example".
- */
