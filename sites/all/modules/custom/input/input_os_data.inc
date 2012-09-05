@@ -1,7 +1,5 @@
 <?php
 
-// $Id: input_os_data.inc,v 1.8 2012/08/28 14:16:38 stephen Exp stephen $
-
 
 /**
  * @file
