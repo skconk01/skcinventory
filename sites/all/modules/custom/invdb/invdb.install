@@ -123,7 +123,7 @@ $schema['zz_team_inv'] = array(
 /**
  * Adds zz_system_os table to the databse
  */
-function invdb_update_7001() {
+function invdb_update_7002() {
  $schema['zz_system_os'] = array(
   'description' => 'TODO: please describe this table!',
   'fields' => array(
@@ -139,9 +139,9 @@ function invdb_update_7001() {
       'not null' => TRUE,
     ),
     'sos_version' => array(
-      'description' => 'version of the os',
+      'description' => 'version information for the os',
       'type' => 'varchar',
-      'length' => '16',
+      'length' => '256',
       'not null' => TRUE,
     ),
     'sos_type' => array(
