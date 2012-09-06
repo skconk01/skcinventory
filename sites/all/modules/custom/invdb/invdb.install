@@ -118,3 +118,50 @@ $schema['zz_team_inv'] = array(
 
 
 
+
+
+/**
+ * Adds zz_system_os table to the databse
+ */
+function invdb_update_7001() {
+ $schema['zz_system_os'] = array(
+  'description' => 'TODO: please describe this table!',
+  'fields' => array(
+    'sos_id' => array(
+      'description' => 'system os primary key',
+      'type' => 'serial',
+      'not null' => TRUE,
+    ),
+    'sos_name' => array(
+      'description' => 'linux, windows, solaris',
+      'type' => 'varchar',
+      'length' => '16',
+      'not null' => TRUE,
+    ),
+    'sos_version' => array(
+      'description' => 'version of the os',
+      'type' => 'varchar',
+      'length' => '16',
+      'not null' => TRUE,
+    ),
+    'sos_type' => array(
+      'description' => 'P primary  S secondary',
+      'type' => 'char',
+      'length' => '1',
+      'not null' => TRUE,
+    ),
+    'zz_team_inv_inv_id' => array(
+      'description' => 'foreign key to zz_team_inv inv_id',
+      'type' => 'int',
+      'not null' => TRUE,
+    ),
+  ),
+  'primary key' => array('sos_id'),
+  'indexes' => array(
+    'zz_team_inv_inv_id' => array('zz_team_inv_inv_id'),
+  ),
+);
+
+  db_create_table('zz_system_os', $schema['zz_system_os']);
+
+}
