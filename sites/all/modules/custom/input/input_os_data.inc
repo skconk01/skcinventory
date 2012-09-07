@@ -82,7 +82,7 @@ global $user;
 //--------------------------------------------------------------------------
     case 2:
       $stop = 'here';
-      $hn = $form_state['values']['step1']['hostname'];
+      $hn = $form_state['storage']['values']['step1']['hostname'];
       $form_state['hname'] = $hn;
       $form['step2'] = array(
         '#type' => 'fieldset',
@@ -116,7 +116,7 @@ global $user;
 
     case 3:
       $stop = 'here';
-      $hn = $form_state['hname'];
+      $hn = $form_state['storage']['values']['step1']['hostname'];
       $sosnum = $form_state['values']['step2']['os_secd_num'];
 
 
@@ -248,6 +248,10 @@ function input_os_data_1_submit($form, &$form_state) {
     }
     drupal_set_message($value_message);
     $form_state['rebuild'] = FALSE;
+    $stop = 'here';
+    $form_data = $form_state['storage']['values'];
+    invdb_update_os_table($form_data);
+    
     return;
   }
 

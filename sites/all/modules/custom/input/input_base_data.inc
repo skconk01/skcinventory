@@ -123,12 +123,12 @@ function input_base_data_1($form, &$form_state) {
   $form['service_date'] = array(
       '#title' => t('Date put in Service'),
       '#type' => 'date_popup',
-      '#default_value' => $date,
+      '#default_value' => "$date",
       '#date_format' => $format,
       //'#date_year_range' => '-15:+0',
       '#date_year_range' => '-15:0',
       '#description' => t('Please select a date. if not known use 1997. click in the form window for a calender'),
-      '#default_value' => "01-01-70",
+      //'#default_value' => "01-01-70",
   );
   
   
