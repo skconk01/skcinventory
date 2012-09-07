@@ -36,16 +36,117 @@ function invdb_update_database($db_table, $data_array) {
   ))
   ->execute();
   } catch (Exception $e) {
-    drupal_set_message(t("Sorry, that didn't work. The name must be unique."), 'error');
+    drupal_set_message(t("Sorry, that didn't work. The name must be unique. $e"), 'error');
     $inv_id = 0;
   }
   
   return $inv_id;
 }
+//------------------------------------------------------------------------------------------
+
+/**
+ * function to update the zz_system_os table with the operating system information
+ * @method invdb_update_os_table($data)
+ * @param array $data
+ * 
+ */
+//---------------------------------------------------------------------------------------
+function invdb_update_os_table($data){
+
+  $stop = 'here';
+  
+  $rd['zz_team_inv_inv_id'] = $data['step1']['hostname'];
+  $posarray = $data['step2'];
+
+  $rd['sos_name'] = $posarray['os_type']; // L linux, W windows, S solaris
+  $rd['sos_version'] = $posarray['os_version']; // sting discribing the os
+  $rd['sos_type'] = 'P';  // P for primary os
+
+  __invdb_load_os_data($rd); // load the os table with primary os data
+
+  $num_sos = $posarray['os_secd_num'];
+  
+  $sosarray = $data['step3'];
+  
+  for ($i=0; $i<$num_sos; $i++){
+    $rd['sos_name'] = $sosarray[$i]['os_type']; // L linux, W windows, S solaris
+    $rd['sos_version'] = $sosarray[$i]['os_version']; // sting discribing the os
+    $rd['sos_type'] = 'S';  // P for primary os
+    
+    __invdb_load_os_data($rd); // load the os table with primary os data
+  }
 
 
+  
+  
+  
+  
+ 
+  
+}//end invdb_update_os_table
+//----------------------------------------------------------------------------------------
+
+/**
+ * function to load the zz_system_os table data this function is local to this module
+ * @method invdb_load_os_data($rd)
+ * @param array $rd  row data
+ * 
+ */
+function __invdb_load_os_data($rd){
+
+  $table = 'zz_system_os';
+  $sos_name = __invdb_os_name($rd['sos_name']);
+  $sos_id = 0;  
+  try {
+    $sos_id = db_insert($table)
+    ->fields(array(
+		   'sos_name'  => $sos_name,
+		   'sos_version'  => $rd['sos_version'],
+		   'sos_type'  => $rd['sos_type'],
+		   'zz_team_inv_inv_id'  => $rd['zz_team_inv_inv_id'],
+    
+    ))
+    ->execute();
+  } catch (Exception $e) {
+    drupal_set_message(t("Sorry, that didn't work. The name must be unique. $e"), 'error');
+    $sos_id = 0;
+  }
+  
+  return $sos_id;
+}// end of invdb_load_os_data($rd){
+//------------------------------------------------------------------------------------------
+
+//-------------------------------------------------------------------------------------------
+/**
+ * function to give a name to the system os
+ * @method __invdb_os_name($name_char)  local to this module
+ * @param string $name_char   L linux, W sindows S solaris
+ * @return  sting $os_name   name of the os
+ * 
+ */
+function __invdb_os_name($name_char){
+
+  $os_name = 'none';
+  switch ($name_char)
+  {
+    case 'W':
+      $os_name = 'Windows';
+      break;
+    case 'L':
+      $os_name = 'Linux';
+      break;
+      case 'S':
+        $os_name = 'Solaris';
+        break;      
+    default:
+      $os_name = 'none';
+  }
+  
+ return $os_name;
+}//end of __invdb_os_name($name_char)
 
 
+//------------------------------------------------------------------------------------------
 /**
  * function to get a list of computers for a given user
  * @method invdb_get_computer_list($user_name)
