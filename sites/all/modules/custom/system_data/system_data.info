@@ -1,7 +1,0 @@
-name =  Input: OSOS JZ Inventory Data Input
-description = test by skc of file upload and form Ajax
-package = OSOS JZ team inventory
-core = 7.x
-configure = admin/config/skc
-files[] = skc.module
-dependencies[] = block
