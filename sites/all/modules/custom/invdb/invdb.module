@@ -153,14 +153,32 @@ function __invdb_os_name($name_char){
  * @param  string  $user_name
  * @param  array   $computer_list
  * 
+
+select ti.inv_id, ti.user_id, ti.hostname, so.sos_name 
+  from zz_team_inv as ti, zz_system_os as so
+  where ti.inv_id = so.zz_team_inv_inv_id	  
+  and  ti.user_id = 'sconklin'
+  and so.sos_type = 'P'
+;
+
+
  */
 function invdb_get_computer_list($user_name){
   $stop = 0;
   
-  $query = ("SELECT inv_id, hostname, user_id FROM zz_team_inv
-             WHERE user_id = '" . $user_name . "'
-            ");
-  
+  /* $query = ("SELECT inv_id, hostname, user_id FROM zz_team_inv */
+  /*            WHERE user_id = '" . $user_name . "' */
+  /*           "); */
+ 
+
+  $query = ("select ti.inv_id, ti.user_id, ti.hostname, so.sos_name
+             from zz_team_inv as ti, zz_system_os as so
+              where ti.inv_id = so.zz_team_inv_inv_id
+              and  ti.user_id = '" . $user_name . "'
+              and so.sos_type = 'P'
+             ");
+
+ 
   $result = db_query($query);
   
   foreach ($result as $row) {
