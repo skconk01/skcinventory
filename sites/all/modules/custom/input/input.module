@@ -52,7 +52,8 @@ function input_menu() {
   $items['input/inv/sys'] = array(
     'title' => 'System Info File Data',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('input_os_data_1'),
+    //'page arguments' => array('input_os_data_1'),
+    'page arguments' => array('skc_confuration_file_form'),
     'access callback' => TRUE,
     'description' => 'base data input',
     'file' => 'input_sys_data.inc',
@@ -76,6 +77,4 @@ function input_example_intro() {
   $markup = t('to-do  provide system data collectoins');
   return array('#markup' => $markup);
 }
-
-
 
