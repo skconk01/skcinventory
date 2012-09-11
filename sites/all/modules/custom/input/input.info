@@ -4,3 +4,4 @@ description = form for inventory data input
 package = OSOS JZ team inventory
 core = 7.x
 files[] = input.module
+files[] = imput.inc
