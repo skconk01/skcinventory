@@ -165,7 +165,7 @@ function skc_confuration_file_form_submit($form, &$form_state) {
   if ($file = $form_state['values']['info_file']) {
     
     // Create the directory if it doesn't exist
-    $directory = 'public://ft/configuration_files';
+    $directory = 'public://inventory/configuration_files';
     file_prepare_directory($directory, FILE_CREATE_DIRECTORY);
     
     // Copy the file over.
