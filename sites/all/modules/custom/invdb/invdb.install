@@ -120,13 +120,13 @@ $schema['zz_team_inv'] = array(
 /**
  * Adds invdb sysinfo file tracking  table.
  */
-function invdb_update_7003() {
+function invdb_update_7005() {
   $schema['zz_system_info'] = array(
       'description' => 'table to link the sysinfo file to system and its owner',
       'fields' => array(
           'sys_id' => array(
               'description' => 'the id for this table',
-              'type' => 'int',
+              'type' => 'serial',
               'not null' => TRUE,
           ),
           'file_name' => array(
