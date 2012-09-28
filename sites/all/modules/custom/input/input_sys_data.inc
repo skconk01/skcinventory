@@ -14,13 +14,29 @@
  * function called by skc_menu 
  */
   function skc_confuration_file_form($form, &$form_state){
+
+    // get access to the user name
+    global $user;
+    //$name = $user->name;
+//global $user;
+  //$name;
+  if(isset($user->name)){
+    $name = $user->name;
+  }else {
+    $form['loginerror'] = array(
+        '#type' => 'item',
+        '#title' => t('You will need to login to proceed.'),
+    );
+    return $form;
+   }
+   
     
    // Required for forms with file inputs.
   $form['#attributes'] = array('enctype' => "multipart/form-data");
 
   // get access to the user name
-  global $user;
-  $name = $user->name;
+  /* global $user; */
+  /* $name = $user->name; */
 
   // get a list of computers used by this user
   $computer_list = invdb_get_computer_list($name);
@@ -28,12 +44,13 @@
   $lst = array();
   //$lst['0'] = '';
   foreach ($computer_list as $computer){
-    if ($computer->sos_name == 'Linux'){
+    if ($computer->primary_os == 'L'){
       $idbyos = $computer->hostname . '.html';  // id by your os  L is for linux and expects a html file
     }else{
       $idbyos = $computer->hostname . '.txt';  // id by your os  W or not L is for windows and expects a txt file
     }
     $inv_id = $computer->inv_id;
+    $form_state['storage']['inv_id'] = $inv_id;
     $lst[$idbyos] = $computer->hostname;
   }
   
@@ -63,7 +80,7 @@
     $form['computer_name']['info_file']['#type'] = 'file';
     // the required attribute did not work here something to check into
     //$form['computer_name']['info_file']['#required'] = TRUE;  
-    
+     
   }
   
   $form['submit'] = array(
@@ -161,11 +178,16 @@ function skc_validate_not_in_filename($file, $selected_fn = 'xxxxxx') {
  */
 function skc_confuration_file_form_submit($form, &$form_state) {
   
+  $stop = 'here';
+  
   // Check if a file was uploaded.
   if ($file = $form_state['values']['info_file']) {
     
     // Create the directory if it doesn't exist
     $directory = 'public://inventory/configuration_files';
+    
+    invdb_update_sysinfo_file($form_state['storage']['inv_id'], $form_state['values']['name'], $directory);
+    
     file_prepare_directory($directory, FILE_CREATE_DIRECTORY);
     
     // Copy the file over.

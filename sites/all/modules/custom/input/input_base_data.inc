@@ -46,7 +46,7 @@ function input_base_data_1($form, &$form_state) {
 			);
 
   $form['cubid'] = array(
-      '#title' => t('Cub Id'),
+      '#title' => t('Cube Id'),
       '#type' => 'textfield',
       '#maxlength' => 16,
       '#size' => 16,
@@ -89,7 +89,14 @@ function input_base_data_1($form, &$form_state) {
      '#required' => TRUE,
        );
 
-
+  $form['primary_os'] = array(
+      '#title' => t('Select Primary Operating System'),
+      //'#type' => 'radios',
+      '#type' => 'select',
+      '#options' => array('L' => t('Linux'), 'W' => t('Windows')),
+      '#required' => TRUE,
+  );
+  
 
 
   $form['machine_type'] = array(
@@ -164,6 +171,7 @@ function input_base_data_1_submit($form, &$form_state) {
   $form_input['machine_type'] = $form_state['values']['machine_type']; //L laptop D desktop
   $form_input['machine_user'] = $form_state['values']['machine_user'];
   $form_input['machine_task'] = $form_state['values']['machine_task'];
+  $form_input['primary_os'] = $form_state['values']['primary_os'];
   $form_input['service_date_eop'] = get_epoch($form_state['values']['service_date']);
   $form_input['service_date_str'] = $form_state['values']['service_date'];
   

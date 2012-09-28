@@ -91,6 +91,12 @@ $schema['zz_team_inv'] = array(
       'length' => '1',
       'not null' => TRUE,
     ),
+    'primary_os' => array(
+      'description' => 'L linux W windows',
+      'type' => 'char',
+      'length' => '1',
+      'not null' => TRUE,
+    ),
     'service_date_eop' => array(
       'description' => 'epoc date put in service if known',
       'type' => 'int',
@@ -120,33 +126,38 @@ $schema['zz_team_inv'] = array(
 /**
  * Adds invdb sysinfo file tracking  table.
  */
-function invdb_update_7005() {
-  $schema['zz_system_info'] = array(
-      'description' => 'table to link the sysinfo file to system and its owner',
-      'fields' => array(
-          'sys_id' => array(
-              'description' => 'the id for this table',
-              'type' => 'serial',
-              'not null' => TRUE,
-          ),
-          'file_name' => array(
-              'description' => 'name of the system info data file',
-              'type' => 'varchar',
-              'length' => '256',
-              'not null' => TRUE,
-          ),
-          'zz_team_inv_inv_id' => array(
-              'description' => 'key that will point to the team_inv data abse',
-              'type' => 'int',
-              'not null' => TRUE,
-          ),
-      ),
-      'primary key' => array('sys_id'),
-      'indexes' => array(
-         'zz_team_inv_inv_id' => array('zz_team_inv_inv_id'),
-      ),
-  );
-  
+function invdb_update_7009() {
+$schema['zz_system_info'] = array(
+  'description' => 'TODO: please describe this table!',
+  'fields' => array(
+    'sys_id' => array(
+      'description' => 'primay key for this table',
+      'type' => 'serial',
+      'not null' => TRUE,
+    ),
+    'file_name' => array(
+      'description' => 'name of the system info file',
+      'type' => 'varchar',
+      'length' => '256',
+      'not null' => TRUE,
+    ),
+    'file_path' => array(
+      'description' => 'path to the system info file',
+      'type' => 'varchar',
+      'length' => '512',
+      'not null' => TRUE,
+    ),
+    'zz_team_inv_inv_id' => array(
+      'description' => 'foreign key back to zz_team_inv inv_id',
+      'type' => 'int',
+      'not null' => TRUE,
+    ),
+  ),
+  'primary key' => array('sys_id'),
+  'indexes' => array(
+    'zz_team_inv_inv_id' => array('zz_team_inv_inv_id'),
+  ),
+);
   db_create_table('zz_system_info', $schema['zz_system_info']);
   
 }
@@ -156,8 +167,8 @@ function invdb_update_7005() {
 /**
  * Adds zz_system_os table to the databse
  */
-function invdb_update_7004() {
- $schema['zz_system_os'] = array(
+function invdb_update_7008() {
+$schema['zz_system_os'] = array(
   'description' => 'TODO: please describe this table!',
   'fields' => array(
     'sos_id' => array(
@@ -172,7 +183,7 @@ function invdb_update_7004() {
       'not null' => TRUE,
     ),
     'sos_version' => array(
-      'description' => 'version information for the os',
+      'description' => 'version infromation for the os',
       'type' => 'varchar',
       'length' => '256',
       'not null' => TRUE,

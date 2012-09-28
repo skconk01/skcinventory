@@ -74,7 +74,7 @@ function input_menu() {
  * Page callback for our general info page.
  */
 function input_example_intro() {
-  $markup = t('to-do  provide system data collectoins');
+  $markup = t('this site will provide an interface to collect information about the systems used by the <br/>AOSOS, JOB ZONE, CAREER TEAM');
   return array('#markup' => $markup);
 }
 

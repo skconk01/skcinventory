@@ -33,6 +33,7 @@ function invdb_update_database($db_table, $data_array) {
 		 'machine_task' => $data_array['machine_task'],
 		 'service_date_eop' => $data_array['service_date_eop'],
 		 'service_date_str' => $data_array['service_date_str'],
+		 'primary_os' => $data_array['primary_os'],
   ))
   ->execute();
   } catch (Exception $e) {
@@ -90,6 +91,7 @@ function invdb_update_os_table($data){
  * function to load the zz_system_os table data this function is local to this module
  * @method invdb_load_os_data($rd)
  * @param array $rd  row data
+ * @return integer $sos_id
  * 
  */
 function __invdb_load_os_data($rd){
@@ -166,17 +168,17 @@ select ti.inv_id, ti.user_id, ti.hostname, so.sos_name
 function invdb_get_computer_list($user_name){
   $stop = 0;
   
-  /* $query = ("SELECT inv_id, hostname, user_id FROM zz_team_inv */
-  /*            WHERE user_id = '" . $user_name . "' */
-  /*           "); */
+  $query = ("SELECT inv_id, hostname, user_id, primary_os FROM zz_team_inv
+             WHERE user_id = '" . $user_name . "'
+            ");
  
 
-  $query = ("select ti.inv_id, ti.user_id, ti.hostname, so.sos_name
-             from zz_team_inv as ti, zz_system_os as so
-              where ti.inv_id = so.zz_team_inv_inv_id
-              and  ti.user_id = '" . $user_name . "'
-              and so.sos_type = 'P'
-             ");
+  /* $query = ("select ti.inv_id, ti.user_id, ti.hostname, so.sos_name */
+  /*            from zz_team_inv as ti, zz_system_os as so */
+  /*             where ti.inv_id = so.zz_team_inv_inv_id */
+  /*             and  ti.user_id = '" . $user_name . "' */
+  /*             and so.sos_type = 'P' */
+  /*            "); */
 
  
   $result = db_query($query);
@@ -213,3 +215,36 @@ function invdb_get_hostname($inv_id){
   return $hostname;
 }// end of invdb_get_hostname
 //-------------------------------------------------------------------------
+
+
+//-------------------------------------------------------------------------
+/**
+ * function to update the file name of the system info file
+ * @method invdb_update_sysinfo_file
+ * @param string $zz_team_inv_inv_id  id of the system file belons to
+ * @param string $file_name name of file to upload
+ * @param string $directory drupalized driectory where file is saved.
+ * @return integer $sys_id
+ */
+function invdb_update_sysinfo_file($zz_team_inv_inv_id, $file_name, $directory){
+  $table = 'zz_system_info';
+  
+  //$fn = "$directory/$file_name";
+  
+  try {
+    $sys_id = db_insert($table)
+    ->fields(array(
+        'zz_team_inv_inv_id' => $zz_team_inv_inv_id,
+        'file_name' => $file_name,
+        'file_path' => $directory,
+    ))
+    ->execute();
+  } catch (Exception $e) {
+    drupal_set_message(t("Sorry, that didn't work. The name must be unique. $e"), 'error');
+    $sys_id = 0;
+  }
+  
+return $sys_id;
+}//end of invdb_update_sysinfo_file
+//-------------------------------------------------------------------------
+
