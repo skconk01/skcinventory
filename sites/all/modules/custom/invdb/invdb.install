@@ -114,8 +114,7 @@ $schema['zz_team_inv'] = array(
   'primary key' => array('inv_id'),
   'unique keys' => array(
     'hname' => array('hostname'),
-    'ipadd' => array('ip_address')
-  ),
+    ),
  );//end of zz_team_inv
 
 
