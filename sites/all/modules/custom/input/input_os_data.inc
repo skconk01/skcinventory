@@ -50,12 +50,12 @@ global $user;
   $form['#tree'] = TRUE; // We want to deal with hierarchical form values.
 
 
-  $form['description'] = array(
-    '#markup' => '<div>' . t(
-'This example is a step-by-step wizard. wonk style'
-)
-    . '</div>',
-  );
+/*   $form['description'] = array( */
+/*     '#markup' => '<div>' . t( */
+/* 'This example is a step-by-step wizard. wonk style' */
+/* ) */
+/*     . '</div>', */
+/*   ); */
 
   // $form_state['storage'] has no specific drupal meaning, but it is
   // traditional to keep variables for multistep forms there.
@@ -82,48 +82,52 @@ global $user;
 //--------------------------------------------------------------------------
     case 2:
       $stop = 'here';
-      $hn = $form_state['storage']['values']['step1']['hostname'];
-      $form_state['hname'] = $hn;
+      dpm($form_state);
+
+      $inv_id = $form_state['storage']['values']['step1']['hostname'];
+      $hostname = invdb_get_hostname($inv_id);
+      $primary_os = invdb_get_primary_os($hostname);
+      $form_state['storage']['hname'] = $hostname;
+      $form_state['storage']['primary_os'] = $primary_os;
+
+      dpm($form_state);	
+
       $form['step2'] = array(
         '#type' => 'fieldset',
-        '#title' => t("Step 2: Enter the Primay OS information for ==> $lst[$hn]"),
+        '#title' => t("Step 2: Enter the Primay OS information for ==> $hostname"),
       );
 
-      $form['step2']['os_type'] = array(
-					'#title' => t('Select Primary OS type'),
-					'#type' => 'select',
-					'#options' => array('W' => t('Windows'),  'L' => t('Linux'), 'S' => t('Solaris'), ),
-					'#default_value' => empty($form_state['values']['step2']['os_type']) ? '' : $form_state['values']['step2']['os_type'],
-					'#required' => TRUE,
-					);
 
-      $form['step2']['os_version'] = array(
-					   '#title' => t('your os version string'),
-					   '#type' => 'textfield',
-					   
-					   '#default_value' => empty($form_state['values']['step2']['os_version']) ? '' : $form_state['values']['step2']['os_version'],
-					   '#required' => TRUE,
-					   );
+      
+      if ($primary_os == 'W'){
+		//windows operating system
+      	$form['step2'] = _case_2_windows($hostname);
+      }elseif ($primary_os == 'L'){
+      	// linux operating system
+      	$stop = 'here';
+      	$pre_form_val = '';
+      	if(isset($form_state['storage']['values']['step2']['os_version'])){
+      		$pre_form_val = $form_state['storage']['values']['step2']['os_version'];
+      	}
+      	$form['step2'] =_case_2_linux($hname, $pre_form_val);
+      }
 
-      $form['step2']['os_secd_num'] = array(
-					    '#title' => t('Number of Secondary OS'),
-					    '#type' => 'select',
-					    '#options' => drupal_map_assoc(range(0, 5)),
-					    );
 
       break;
 //--------------------------------------------------------------------------------------------
 
     case 3:
       $stop = 'here';
-      $hn = $form_state['storage']['values']['step1']['hostname'];
+      dpm($form_state);	
+     // $hn = $form_state['storage']['values']['step1']['hostname'];
+     $c3hostname = $form_state['storage']['hname'];
       $sosnum = $form_state['values']['step2']['os_secd_num'];
 
 
       for ($i = 0; $i < $sosnum; $i++){
       $form['step3'][$i] = array(
         '#type' => 'fieldset',
-        '#title' => t("Step 3: Enter secondary OS information for ==> $lst[$hn]"),
+        '#title' => t("Step 3: Enter secondary OS information for ==> $c3hostname"),
       );
 
       
@@ -249,7 +253,12 @@ function input_os_data_1_submit($form, &$form_state) {
     drupal_set_message($value_message);
     $form_state['rebuild'] = FALSE;
     $stop = 'here';
-    $form_data = $form_state['storage']['values'];
+    $form_data = array();
+    $form_data['values'] = $form_state['storage']['values'];
+    $form_data['hname'] = $form_state['storage']['hname'];
+    $form_data['primary_os'] = $form_state['storage']['primary_os'];
+    
+    
     invdb_update_os_table($form_data);
     
     return;
@@ -258,4 +267,93 @@ function input_os_data_1_submit($form, &$form_state) {
   // Otherwise, we still have work to do.
   $form_state['rebuild'] = TRUE;
 }
+
+
+
+//------------------------------------------------------------------------------------------------------------------
+/**
+ * function to set of os form for a windows system
+ * @method _case_2_windows
+ * @param txt $hostname
+ * @return array $$form['step2']
+ */
+function _case_2_windows($hostname){
+  
+  $form['step2'] = array(
+			 '#type' => 'fieldset',
+			 '#title' => t("Step 2: Select the type of Windows operating system for ==> $hostname"),
+			 );
+  
+  $form['step2']['os_version'] = array(
+				    '#title' => t('Select Primary OS type'),
+				    '#type' => 'select',
+				    '#options' => array('W7' => t('Windows7'),  'XP' => t('XP')),
+				    '#default_value' => empty($form_state['values']['step2']['os_version']) ? '' : $form_state['values']['step2']['os_veresion'],
+				    '#required' => TRUE,
+				    );
+  
+
+  $form['step2']['os_secd_num'] = array(
+					'#title' => t('Number of Secondary OS'),
+					'#type' => 'select',
+					'#options' => drupal_map_assoc(range(0, 5)),
+					);
+  
+  
+  return $form['step2'];
+} //end _case_2_windows
+
+//------------------------------------------------------------------------------------------------------------------
+
+
+//------------------------------------------------------------------------------------------------------------------
+
+/**
+ * function to set of os form for a linux system
+ * @method _case_2_linux
+ * @param txt $hostname
+ * @param txt $pi the previous form value if set
+ * @return array $form['step2']
+ */
+function _case_2_linux($hostname, $pi){
+  
+  $form['step2'] = array(
+			 '#type' => 'fieldset',
+			 '#title' => t("Step 2: Please enter the OS version string for the host named ==> $hostname"),
+			 );
+  
+
+  $form['step2']['inst'] = array(
+    '#title' => 'Determin the Linux type and version',
+    '#type' => 'fieldset',
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+  );
+ 
+ $form['step2']['inst']['help'] = array(
+     '#type' => 'markup',
+     '#markup' => '<p>' . t(
+'in a command terminal run the following command and enter the result of the command<br>
+<b>cat /etc/issue</b>'			    ).'</p>',
+					);
+      $form['step2']['os_version'] = array(
+					   '#title' => t('your os version string'),
+					   '#type' => 'textfield',
+					   
+					   '#default_value' => empty($pi) ? '' : $pi,
+					   '#required' => TRUE,
+					   ); 
+ 
+
+  $form['step2']['os_secd_num'] = array(
+					'#title' => t('Number of Secondary OS'),
+					'#type' => 'select',
+					'#options' => drupal_map_assoc(range(0, 5)),
+					);
+  
+  
+  return $form['step2'];
+} //end _case_2_linux
+
+//------------------------------------------------------------------------------------------------------------------
 
