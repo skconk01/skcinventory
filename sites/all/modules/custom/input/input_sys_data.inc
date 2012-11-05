@@ -17,9 +17,7 @@
 
     // get access to the user name
     global $user;
-    //$name = $user->name;
-//global $user;
-  //$name;
+
   if(isset($user->name)){
     $name = $user->name;
   }else {
@@ -50,11 +48,11 @@
       $idbyos = $computer->hostname . '.txt';  // id by your os  W or not L is for windows and expects a txt file
     }
     $inv_id = $computer->inv_id;
-    $form_state['storage']['inv_id'] = $inv_id;
+    //$form_state['storage']['inv_id'] = $inv_id;
     $lst[$idbyos] = $computer->hostname;
   }
   
-
+  $form_state['storage'] = $lst;
  
   // Added AJAX callback.
   $form['computer_name']['name'] = array(
@@ -76,8 +74,50 @@
   
   // When submitted, check for value of OS, and populate os_verify.
   if (isset($form_state['values']['name'])) { // Fixed this line, was throwing an error in the original video code.
-    $form['computer_name']['info_file']['#title'] = t('rename your info file name to ==>  @os and upload', array('@os' => $form_state['values']['name']));
-    $form['computer_name']['info_file']['#type'] = 'file';
+
+  	$stop = 'here';
+  	dpm($form_state);
+	$compluter_file_name = $form_state['values']['name'];
+	$computer_name = $form_state['storage'][$compluter_file_name];
+	
+  	$primary_os = invdb_get_primary_os($computer_name);
+  	
+  	if($primary_os == 'L'){ // linux interface
+  		$form['computer_name']['info_file'] = array(
+  				'#type' => 'fieldset',
+  				'#title' => t("Collecting data for the host named ==> $computer_name"),
+  		);
+  		
+  		
+  		$form['computer_name']['info_file']['inst'] = array(
+  				'#title' => 'Data collection steps for Linux Systems',
+  				'#type' => 'fieldset',
+  				'#collapsible' => TRUE,
+  				'#collapsed' => TRUE,
+  		);
+  		
+  		$form['computer_name']['info_file']['inst']['help'] = array(
+  				'#type' => 'markup',
+  				'#markup' => '<p> <ul>' . t(' open a command terminal and run the following command') .
+  				                    '<ul>' .t("sudo lshw -html > $compluter_file_name") . 
+  				                 '</ul>
+  				
+  						      </p>',
+  		);
+   		
+  		$form['computer_name']['info_file']['data'] = array(
+  				'#title' => t('rename your info file name to ==>  @os and upload', array('@os' => $compluter_file_name)),
+  				'#type'  => 'file',
+  		);
+  		
+  		//$form['computer_name']['info_file']['data']['#title'] = t('rename your info file name to ==>  @os and upload', array('@os' => $compluter_file_name));
+  		//$form['computer_name']['info_file']['data']['#type'] = 'file';
+  	}elseif ($primary_os == 'W'){ // windows interface
+  		
+  	}
+  	
+//    $form['computer_name']['info_file']['#title'] = t('rename your info file name to ==>  @os and upload', array('@os' => $compluter_file_name));
+//    $form['computer_name']['info_file']['#type'] = 'file';
     // the required attribute did not work here something to check into
     //$form['computer_name']['info_file']['#required'] = TRUE;  
      
@@ -97,7 +137,7 @@
  */
 function skc_info_file_ajax_callback($form, $form_state) {
   return $form['computer_name']['info_file'];
-}
+  }
 
 
 
@@ -120,8 +160,8 @@ function skc_confuration_file_form_validate($form, &$form_state) {
 
 
   // look in $_FILES->files->name to find in this case info_file
-  //$file = file_save_upload('info_file');
-  $file = file_save_upload('info_file', $validators, FALSE, FILE_EXISTS_REPLACE);
+  $file = file_save_upload('info_file');
+  //$file = file_save_upload('info_file', $validators, FALSE, FILE_EXISTS_REPLACE);
 
   if (isset($file)) {
     // File upload was attempted.
@@ -184,7 +224,7 @@ function skc_confuration_file_form_submit($form, &$form_state) {
   if ($file = $form_state['values']['info_file']) {
     
     // Create the directory if it doesn't exist
-    $directory = 'public://inventory/configuration_files';
+    $directory = 'public://inventory/configuration_files-bob';
     
     invdb_update_sysinfo_file($form_state['storage']['inv_id'], $form_state['values']['name'], $directory);
     
