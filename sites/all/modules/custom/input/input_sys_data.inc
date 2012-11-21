@@ -32,10 +32,7 @@
    // Required for forms with file inputs.
   $form['#attributes'] = array('enctype' => "multipart/form-data");
 
-  // get access to the user name
-  /* global $user; */
-  /* $name = $user->name; */
-
+ 
   // get a list of computers used by this user
   $computer_list = invdb_get_computer_list($name);
  
@@ -48,7 +45,6 @@
       $idbyos = $computer->hostname . '.txt';  // id by your os  W or not L is for windows and expects a txt file
     }
     $inv_id = $computer->inv_id;
-    //$form_state['storage']['inv_id'] = $inv_id;
     $lst[$idbyos] = $computer->hostname;
   }
   
@@ -73,56 +69,50 @@
   );
   
   // When submitted, check for value of OS, and populate os_verify.
-  if (isset($form_state['values']['name'])) { // Fixed this line, was throwing an error in the original video code.
+  if (isset($form_state['values']['name'])) {
+    $stop = 'here';
+     dpm($form_state);
+     $hname = $form_state['values']['name'];
+     $compluter_file_name = $form_state['values']['name'];
+     $computer_name = $form_state['storage'][$compluter_file_name];
+     
+     $primary_os = invdb_get_primary_os($computer_name);
 
-  	$stop = 'here';
-  	dpm($form_state);
-	$compluter_file_name = $form_state['values']['name'];
-	$computer_name = $form_state['storage'][$compluter_file_name];
-	
-  	$primary_os = invdb_get_primary_os($computer_name);
-  	
-  	if($primary_os == 'L'){ // linux interface
-  		$form['computer_name']['info_file'] = array(
-  				'#type' => 'fieldset',
-  				'#title' => t("Collecting data for the host named ==> $computer_name"),
-  		);
-  		
-  		
-  		$form['computer_name']['info_file']['inst'] = array(
-  				'#title' => 'Data collection steps for Linux Systems',
-  				'#type' => 'fieldset',
-  				'#collapsible' => TRUE,
-  				'#collapsed' => TRUE,
-  		);
-  		
-  		$form['computer_name']['info_file']['inst']['help'] = array(
-  				'#type' => 'markup',
-  				'#markup' => '<p> <ul>' . t(' open a command terminal and run the following command') .
+     //drupal_set_message($message = "the hostname is ==> $hname", $type = 'status', $repeat = TRUE);
+ 
+    /* $form['computer_name']['info_file'] = array( */
+    /* 		    '#title' => t("System Info file to up load ==> $hname"), */
+    /* 		    '#type' => 'file' */
+    /*  		); */
+     
+     $form['computer_name']['info_file']['#title'] = t("System Info file bobob to up load is tghis  ==> $hname");
+     $form['computer_name']['info_file']['#type'] = 'fieldset';
+
+     $form['computer_name']['info_file']['inst']['#title'] = t('Data collection steps for Linux Systems');
+     $form['computer_name']['info_file']['inst']['#type'] =  'fieldset';
+     $form['computer_name']['info_file']['inst']['#collapsible'] = TRUE;
+     $form['computer_name']['info_file']['inst']['#collapsed'] = TRUE;
+
+     $form['computer_name']['info_file']['inst']['help']['#type'] = 'markup';
+     $form['computer_name']['info_file']['inst']['help']['#markup'] = '<p> <ul>' . t(' open a command terminal and run the following command') .
   				                    '<ul>' .t("sudo lshw -html > $compluter_file_name") . 
   				                 '</ul>
-  				
-  						      </p>',
-  		);
-   		
-  		$form['computer_name']['info_file']['data'] = array(
-  				'#title' => t('rename your info file name to ==>  @os and upload', array('@os' => $compluter_file_name)),
-  				'#type'  => 'file',
-  		);
-  		
-  		//$form['computer_name']['info_file']['data']['#title'] = t('rename your info file name to ==>  @os and upload', array('@os' => $compluter_file_name));
-  		//$form['computer_name']['info_file']['data']['#type'] = 'file';
-  	}elseif ($primary_os == 'W'){ // windows interface
-  		
-  	}
-  	
-//    $form['computer_name']['info_file']['#title'] = t('rename your info file name to ==>  @os and upload', array('@os' => $compluter_file_name));
-//    $form['computer_name']['info_file']['#type'] = 'file';
-    // the required attribute did not work here something to check into
-    //$form['computer_name']['info_file']['#required'] = TRUE;  
-     
+  						      </p>';
+
+     $form['computer_name']['info_file']['up_file']['#title'] = t("System Info file to up load ==> $compluter_file_name");
+     $form['computer_name']['info_file']['up_file']['#type'] = 'file';
+
+
   }
   
+
+// get the file that needs to be uploaded
+  /* $form['configuration_file'] = array( */
+  /*     '#title' => t('System Info file to up load'), */
+  /*     '#type' => 'file' */
+  /* ); */
+
+
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Submit'),
@@ -133,9 +123,10 @@
 
 
 /**
- * AJAX callback for OS verification.
+ * AJAX callback for info file selection.
  */
 function skc_info_file_ajax_callback($form, $form_state) {
+
   return $form['computer_name']['info_file'];
   }
 
@@ -149,6 +140,7 @@ function skc_info_file_ajax_callback($form, $form_state) {
 function skc_confuration_file_form_validate($form, &$form_state) {
 
   $stop = 'here';
+  
 
   $selected_fn = $form_state['values']['name'];
   
@@ -160,8 +152,8 @@ function skc_confuration_file_form_validate($form, &$form_state) {
 
 
   // look in $_FILES->files->name to find in this case info_file
-  $file = file_save_upload('info_file');
-  //$file = file_save_upload('info_file', $validators, FALSE, FILE_EXISTS_REPLACE);
+  //$file = file_save_upload('info_file');
+  $file = file_save_upload('up_file', $validators, FALSE, FILE_EXISTS_REPLACE);
 
   if (isset($file)) {
     // File upload was attempted.
@@ -219,14 +211,22 @@ function skc_validate_not_in_filename($file, $selected_fn = 'xxxxxx') {
 function skc_confuration_file_form_submit($form, &$form_state) {
   
   $stop = 'here';
-  
+  dpm($form_state);
   // Check if a file was uploaded.
   if ($file = $form_state['values']['info_file']) {
     
     // Create the directory if it doesn't exist
-    $directory = 'public://inventory/configuration_files-bob';
+    $directory = 'public://inventory/configuration_files';
     
-    invdb_update_sysinfo_file($form_state['storage']['inv_id'], $form_state['values']['name'], $directory);
+    $host_file_name = $form_state['values']['name'];
+    $hname = $form_state['storage'][$host_file_name];
+    $inv_id_std_class = invdb_get_inv_id($hname);
+    $inv_id = $inv_id_std_class -> inv_id;
+    
+    $fn = $file -> filename;   //name of file
+    $ts = $file -> timestamp;  //epoch of file
+    
+    invdb_update_sysinfo_file($inv_id, $fn, $directory, $ts);
     
     file_prepare_directory($directory, FILE_CREATE_DIRECTORY);
     

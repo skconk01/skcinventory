@@ -37,7 +37,7 @@ function invdb_update_database($db_table, $data_array) {
   ))
   ->execute();
   } catch (Exception $e) {
-    drupal_set_message(t("Sorry, that didn't work. The name must be unique. $e"), 'error');
+    drupal_set_message(t("Sorry, that didn't work. The update_database name must be unique. $e"), 'error');
     $inv_id = 0;
   }
   
@@ -55,34 +55,36 @@ function invdb_update_database($db_table, $data_array) {
 function invdb_update_os_table($data){
 
   $stop = 'here';
-  
-  $rd['zz_team_inv_inv_id'] = $data['step1']['hostname'];
-  $posarray = $data['step2'];
+  dpm($data);
+  $rd['zz_team_inv_inv_id'] = $data['values']['step1']['hostname'];
+  //$posarray = $data['step2'];
 
-  $rd['sos_name'] = $posarray['os_type']; // L linux, W windows, S solaris
-  $rd['sos_version'] = $posarray['os_version']; // sting discribing the os
+  $rd['sos_name'] = $data['primary_os']; // L linux, W windows, S solaris
+  $rd['sos_version'] = $data['values']['step2']['os_version']; // sting discribing the os
   $rd['sos_type'] = 'P';  // P for primary os
 
-  __invdb_load_os_data($rd); // load the os table with primary os data
-
-  $num_sos = $posarray['os_secd_num'];
   
-  $sosarray = $data['step3'];
+  $ck_prmary_os = $ck = invdb_ck_if_primary_os_in_table($rd['zz_team_inv_inv_id']);
   
-  for ($i=0; $i<$num_sos; $i++){
-    $rd['sos_name'] = $sosarray[$i]['os_type']; // L linux, W windows, S solaris
-    $rd['sos_version'] = $sosarray[$i]['os_version']; // sting discribing the os
-    $rd['sos_type'] = 'S';  // P for primary os
-    
-    __invdb_load_os_data($rd); // load the os table with primary os data
+  if(!$ck_prmary_os){
+  	__invdb_load_os_data($rd); // load the os table with primary os data
   }
 
+  $num_sos = $data['values']['step2']['os_secd_num'];
+  
+  if (isset($data['values']['step3'])){
+  	$sosarray = $data['values']['step3'];
+  	
+  	for ($i=0; $i<$num_sos; $i++){
+  		$rd['sos_name'] = $sosarray[$i]['os_type']; // L linux, W windows, S solaris
+  		$rd['sos_version'] = $sosarray[$i]['os_version']; // sting discribing the os
+  		$rd['sos_type'] = 'S';  // P for primary os
+  	
+  		__invdb_load_os_data($rd); // load the os table with primary os data
+  	}
+  	 
+  }
 
-  
-  
-  
-  
- 
   
 }//end invdb_update_os_table
 //----------------------------------------------------------------------------------------
@@ -110,7 +112,7 @@ function __invdb_load_os_data($rd){
     ))
     ->execute();
   } catch (Exception $e) {
-    drupal_set_message(t("Sorry, that didn't work. The name must be unique. $e"), 'error');
+    drupal_set_message(t("Sorry, that didn't work. __invdb_load_os_data The name must be unique. $e"), 'error');
     $sos_id = 0;
   }
   
@@ -210,12 +212,79 @@ function invdb_get_hostname($inv_id){
   foreach ($result as $row) {
     $rd[] = $row;
   }
-  $hostname = $rd[0];
+  $hostname = $rd[0]->hostname;
 
   return $hostname;
 }// end of invdb_get_hostname
 //-------------------------------------------------------------------------
 
+//-------------------------------------------------------------------------
+/**
+ * function to get the inv_id based on the hostname
+ * @method invdb_get_inv_id($hostname)
+ * @param  string  $hostname
+ * @return  string  $inv_id
+ * 
+ */
+function invdb_get_inv_id($hostname){
+  $stop = 0;
+  
+  $query = ("SELECT inv_id  FROM zz_team_inv
+             WHERE hostname = '" . $hostname . "'
+            ");
+  
+  $result = db_query($query);
+  
+  foreach ($result as $row) {
+    $rd[] = $row;
+  }
+  $inv_id = $rd[0];
+
+  return $inv_id;
+}// end of invdb_get_hostname
+//-------------------------------------------------------------------------
+
+//-------------------------------------------------------------------------
+/**
+ * private function to check if a file data alread exists in the zz_system_info table
+ * @method __invdb_ck_for_file_name($file_name)
+ * @param string $file_name
+ * @return boolean $existence  TRUE if the file is in the data base
+ *                               FALSE if the file is not in the data base
+ */
+function __invdb_ck_for_file_name($file_name){
+	$existence = FALSE;
+	$query_string = "SELECT COUNT(*) as num FROM zz_system_info WHERE file_name = '". $file_name ."' ";
+	$bid = db_query($query_string);
+	foreach ($bid as $row) {
+		$rd[] = $row;
+	}
+	$val = $rd[0]->num;
+	if ($val != 0){
+		$existence = TRUE;
+	}
+	return $existence ;
+}// end __invdb_ck_for_file_name($file_name)
+//-------------------------------------------------------------------------
+
+//-------------------------------------------------------------------------
+/**
+ * private function to remove row with file data so can enter new file data
+ * @method __invdb_rm_file_name($file_name)
+ * @param string $file_name
+ * DELETE FROM zz_system_info  WHERE file_name = 'skclinux.html';
+ */
+function __invdb_rm_file_name($file_name){
+	
+	//$query_string = "DELETE FROM zz_system_info  WHERE file_name = '". $file_name ."'";
+	
+	db_delete('zz_system_info')
+	->condition('file_name', $file_name)
+	->execute();
+	
+	return;
+}// end __invdb_rm_file_name($file_name)
+//-------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------
 /**
@@ -224,12 +293,20 @@ function invdb_get_hostname($inv_id){
  * @param string $zz_team_inv_inv_id  id of the system file belons to
  * @param string $file_name name of file to upload
  * @param string $directory drupalized driectory where file is saved.
+ * @param int  $epoch  the epoch of when the file was saved
  * @return integer $sys_id
  */
-function invdb_update_sysinfo_file($zz_team_inv_inv_id, $file_name, $directory){
+function invdb_update_sysinfo_file($zz_team_inv_inv_id, $file_name, $directory, $epoch){
   $table = 'zz_system_info';
   
-  //$fn = "$directory/$file_name";
+  $bid = __invdb_ck_for_file_name($file_name);
+  
+  
+  if((__invdb_ck_for_file_name($file_name))){// returns true if the file is in database
+  	$stop = 'here';
+  	__invdb_rm_file_name($file_name);
+  }
+  
   
   try {
     $sys_id = db_insert($table)
@@ -237,10 +314,11 @@ function invdb_update_sysinfo_file($zz_team_inv_inv_id, $file_name, $directory){
         'zz_team_inv_inv_id' => $zz_team_inv_inv_id,
         'file_name' => $file_name,
         'file_path' => $directory,
+    	'epoch' => $epoch,	
     ))
     ->execute();
   } catch (Exception $e) {
-    drupal_set_message(t("Sorry, that didn't work. The name must be unique. $e"), 'error');
+    drupal_set_message(t("Sorry, that didn't work. update_sysinfo_file The name must be unique. $e"), 'error');
     $sys_id = 0;
   }
   
@@ -248,3 +326,58 @@ return $sys_id;
 }//end of invdb_update_sysinfo_file
 //-------------------------------------------------------------------------
 
+
+//-------------------------------------------------------------------------
+/**
+ * function to return the primary os for a given hostname
+ * @method invdb_get_primary_os
+ * @param text $hostname  name of the system  really the inv_id
+ * @return txt $ostype   L for linux W for windows
+ */
+function invdb_get_primary_os($hostname){
+  
+  $stop = 'here';
+  $query = ("SELECT primary_os  FROM zz_team_inv
+             WHERE hostname = '" . $hostname . "'
+            ");
+  
+  $result = db_query($query);
+  foreach ($result as $row) {
+    $rd[] = $row;
+  }
+  
+  $pos = $rd[0]->primary_os;
+  
+  return $pos;
+} //end of invdb_get_primary_os
+//-------------------------------------------------------------------------
+
+//-------------------------------------------------------------------------
+/**
+ * check the zz_system_os table to determain if the system identified by
+ * zz_team_inv_inv_id has an entery for primay os
+ * @method invdb_ck_if_primary_os_in_table()
+ * @param int $zz_team_inv_inv_id id of system in the zz_team_inv table
+ * @return boolean  $return_val  TRUE if there is a primary os entered
+ *                                 FALSE if there is no primary os entered
+ * 
+ */
+function invdb_ck_if_primary_os_in_table($zz_team_inv_inv_id){
+	$return_val = FALSE;
+	//SELECT sos_type FROM zz_system_os WHERE zz_team_inv_inv_id = '3';
+	$query = ("SELECT sos_type FROM zz_system_os
+	           WHERE zz_team_inv_inv_id ='".$zz_team_inv_inv_id."'
+	          ");
+	
+	$result = db_query($query);
+	foreach ($result as $row) {
+		$rd[] = $row;
+	}
+	
+	if(isset($rd)){
+		$return_val = TRUE;
+	}
+	
+	return $return_val;
+}// end invdb_ck_if_primary_os_in_table($zz_team_inv_inv_id)
+//-------------------------------------------------------------------------

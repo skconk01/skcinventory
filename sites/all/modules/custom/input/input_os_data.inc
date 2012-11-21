@@ -82,7 +82,7 @@ global $user;
 //--------------------------------------------------------------------------
     case 2:
       $stop = 'here';
-      dpm($form_state);
+     
 
       $inv_id = $form_state['storage']['values']['step1']['hostname'];
       $hostname = invdb_get_hostname($inv_id);
@@ -90,7 +90,7 @@ global $user;
       $form_state['storage']['hname'] = $hostname;
       $form_state['storage']['primary_os'] = $primary_os;
 
-      dpm($form_state);	
+      
 
       $form['step2'] = array(
         '#type' => 'fieldset',

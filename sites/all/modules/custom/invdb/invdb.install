@@ -194,6 +194,22 @@ $schema['zz_system_os'] = array(
 } // function invdb_schema
 
 
+/**
+ * Adds column epoch to  zz_system_info
+ */
+function invdb_update_7001() {
+ $spec = array(
+    'type' => 'int',
+    'description' => "the epoch time file was saved",
+    'not null' => FALSE,
+  );
+
+db_add_field( 'zz_system_info', 'epoch', $spec);
+
+}// end invdb_update_7001
+
+
+
 //-------------------------------------------------------------------------------------
 /**
  * Adds invdb sysinfo file tracking  table.
