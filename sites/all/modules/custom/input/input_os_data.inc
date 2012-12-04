@@ -334,7 +334,8 @@ function _case_2_linux($hostname, $pi){
      '#type' => 'markup',
      '#markup' => '<p>' . t(
 'in a command terminal run the following command and enter the result of the command<br>
-<b>cat /etc/issue</b>'			    ).'</p>',
+<b>cat /etc/issue.net</b>'
+                            ).'</p>',
 					);
       $form['step2']['os_version'] = array(
 					   '#title' => t('your os version string'),
