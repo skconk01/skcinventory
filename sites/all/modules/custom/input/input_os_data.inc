@@ -32,6 +32,27 @@ global $user;
 
 // get a list of computers used by this user
   $computer_list = invdb_get_computer_list($name);
+  
+  if (empty($computer_list)){
+  	$stop = 'here';
+  	
+  	$form['computer_list_error'] = array(
+  			'#type' => 'markup',
+  			'#markup' => '
+  			<ul style="list-style-type:none;">
+                <li><span style="color:red; font-size:18px;"> There needs to be at least ONE system in the inventory data base under your user ID.</span></li>
+  				<ul style="list-style-type:none;">
+  			      	<li style="color:black; font-size:14px;">Review Step One.</li>
+  					<li style="color:black; font-size:14px;"><a href="http://10.255.128.73/inventory/input/inv/bs">Follow Base System Data link.</a></li>
+  			      </ul>
+            </ul>
+  			'
+  	  	);
+  	
+  	return $form;
+  }// end if empty
+  
+  
 
 
   $lst = array();

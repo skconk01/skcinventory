@@ -35,7 +35,29 @@
  
   // get a list of computers used by this user
   $computer_list = invdb_get_computer_list($name);
- 
+   
+  if (empty($computer_list)){
+  	$stop = 'here';
+  	 
+  	$form['computer_list_error'] = array(
+  			'#type' => 'markup',
+  			'#markup' => '
+  			<ul style="list-style-type:none;">
+  			<li><span style="color:red; font-size:18px;"> There needs to be at least ONE system in the inventory data base under your user ID.</span></li>
+  			<ul style="list-style-type:none;">
+  			<li style="color:black; font-size:14px;">Review Step One.</li>
+  			<li style="color:black; font-size:14px;"><a href="http://10.255.128.73/inventory/input/inv/bs">Follow Base System Data link.</a></li>
+  			</ul>
+  			</ul>
+  			'
+    	);
+  	 
+  	return $form;
+  }// end if empty
+  
+  
+  
+  
   $lst = array();
   //$lst['0'] = '';
   foreach ($computer_list as $computer){
@@ -70,8 +92,8 @@
   
   // When submitted, check for value of OS, and populate os_verify.
   if (isset($form_state['values']['name'])) {
-    $stop = 'here';
-     dpm($form_state);
+    //$stop = 'here';
+     //dpm($form_state);
      $hname = $form_state['values']['name'];
      $compluter_file_name = $form_state['values']['name'];
      $computer_name = $form_state['storage'][$compluter_file_name];
@@ -80,24 +102,44 @@
 
      //drupal_set_message($message = "the hostname is ==> $hname", $type = 'status', $repeat = TRUE);
  
-    /* $form['computer_name']['info_file'] = array( */
-    /* 		    '#title' => t("System Info file to up load ==> $hname"), */
-    /* 		    '#type' => 'file' */
-    /*  		); */
+   
      
-     $form['computer_name']['info_file']['#title'] = t("System Info file bobob to up load is tghis  ==> $hname");
+     $form['computer_name']['info_file']['#title'] = t("System Info file to up load is this  ==> $hname");
      $form['computer_name']['info_file']['#type'] = 'fieldset';
 
-     $form['computer_name']['info_file']['inst']['#title'] = t('Data collection steps for Linux Systems');
+     if ($primary_os === 'L'){
+     	$form['computer_name']['info_file']['inst']['#title'] = t('Data collection steps for Linux Systems');
+     }elseif ($primary_os === 'W'){
+     	$form['computer_name']['info_file']['inst']['#title'] = t('Data collection steps for Windows Systems');
+     }
+
      $form['computer_name']['info_file']['inst']['#type'] =  'fieldset';
      $form['computer_name']['info_file']['inst']['#collapsible'] = TRUE;
      $form['computer_name']['info_file']['inst']['#collapsed'] = TRUE;
 
      $form['computer_name']['info_file']['inst']['help']['#type'] = 'markup';
-     $form['computer_name']['info_file']['inst']['help']['#markup'] = '<p> <ul>' . t(' open a command terminal and run the following command') .
-  				                    '<ul>' .t("sudo lshw -html > $compluter_file_name") . 
-  				                 '</ul>
-  						      </p>';
+     
+     if ($primary_os === 'L'){
+     	$form['computer_name']['info_file']['inst']['help']['#markup'] = '
+     	<p> <ul> 
+     	  <li>'. t(' open a command terminal and run the following command') . '</li>
+     	<ul>
+     	  <li>'	.t("sudo lshw -html > $compluter_file_name") .'</li>
+     	</ul>
+     	</p>';
+     }elseif ($primary_os === 'W'){
+     	$form['computer_name']['info_file']['inst']['help']['#markup'] = '
+     <p> 
+     	<ul> 
+     	  <li>' . t("find the command System Information and export the output to a txt file named $compluter_file_name") . '</li>
+     	  <ul> 
+     	    <li>'.t("All Programs ==> Accessories ==> System Tools ==> System Information") . '</li>
+     	    <li>' .t("export output to a file named ==> $compluter_file_name") . '</li>
+     	  </ul>
+     	 </ul> 
+     </p>';
+     }
+
 
      $form['computer_name']['info_file']['up_file']['#title'] = t("System Info file to up load ==> $compluter_file_name");
      $form['computer_name']['info_file']['up_file']['#type'] = 'file';
@@ -106,11 +148,7 @@
   }
   
 
-// get the file that needs to be uploaded
-  /* $form['configuration_file'] = array( */
-  /*     '#title' => t('System Info file to up load'), */
-  /*     '#type' => 'file' */
-  /* ); */
+
 
 
   $form['submit'] = array(

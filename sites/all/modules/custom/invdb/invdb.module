@@ -188,6 +188,11 @@ function invdb_get_computer_list($user_name){
   foreach ($result as $row) {
     $computer_list[] = $row;
   }
+  
+  if (empty($computer_list)){
+  	$computer_list = array();  // make this an emptey array to stop Undefined variable error
+  }
+  
   return $computer_list;
 }// end of invdb_get_computer_list
 
@@ -381,3 +386,102 @@ function invdb_ck_if_primary_os_in_table($zz_team_inv_inv_id){
 	return $return_val;
 }// end invdb_ck_if_primary_os_in_table($zz_team_inv_inv_id)
 //-------------------------------------------------------------------------
+
+//----------------------------------------------------------------------------
+/**
+ * based on the zz_team_inv inv_id return the primary sos_version 
+ * from the zz_system_os table
+ * @method invdb_primary_os_version_string($inv_id)
+ * @param int  $inv_id
+ * @return string $primary_os
+ * 
+ */
+function invdb_primary_os_version_string($inv_id){
+	$primary_os ='NotFound';
+	$query = ("SELECT sos_version FROM zz_system_os
+			WHERE sos_type = 'P'
+			AND
+			zz_team_inv_inv_id ='".$inv_id."'
+			");
+	
+	$result = db_query($query);
+	
+	foreach ($result as $row) {
+		$rd[] = $row;
+	}
+	
+	if (isset($rd[0]->sos_version)){
+	  $primary_os = $rd[0]->sos_version;
+	}
+	
+	return $primary_os;
+} //end invdb_primary_os_version_string
+//----------------------------------------------------------------------------
+
+
+
+//----------------------------------------------------------------------------
+/**
+ * build and return a formated named link to the info file based on the zz_team_inv_inv_id
+ * @method invdb_get_info_file_name_link($inv_id)
+ * @param  int $inv_id
+ * @return string $link_name
+ * print l(t('This is the link text'), 'node/2');
+ *  file_create_url($uri)
+ */
+function invdb_get_info_file_name_link($inv_id){
+	
+	$stop = 'here';
+	$link_name = 'No Info File';
+	
+	
+	$query = ("SELECT so.file_name, so.file_path, so.epoch FROM zz_system_info AS so
+			WHERE zz_team_inv_inv_id ='".$inv_id."'
+			");
+	
+	$result = db_query($query);
+	
+	foreach ($result as $row) {
+		$rd[] = $row;
+	}
+	
+	if (isset($rd[0]->file_name)){
+		$name = $rd[0]->file_name;
+	    $link = $rd[0]->file_path;
+	    $epoch = $rd[0]->epoch;
+        //$link_name = l(t($name), "$link/$name");
+        //$link_name = file_create_url($uri);
+	    //$file_uri = file_create_url(file_build_uri('images/example.jpeg'));
+	    //$uri = "inventory/configuration_files/$name";
+	    //$uri = $link;
+	    //$link_name = l( $name, file_create_url(file_build_uri($uri)));
+	    $link_name = __formate_link_name($name, $link);
+	    
+	    
+	}
+	return  $link_name;
+}// end invdb_get_info_file_name_link
+//----------------------------------------------------------------------------
+
+//----------------------------------------------------------------------------
+/**
+ * create and return a well formated link name 
+ * @method __formate_link_name($name, $link)
+ * @param string $name
+ * @param string $link
+ * @return string $link_name
+ * 
+ * strip the  public:// from the link array
+ * build the uri
+ * build the $link_name
+ */
+function __formate_link_name($name, $link){
+
+	$stop = 'here';
+	$base_uri_array = explode("://", $link);
+	$uri = "$base_uri_array[1]/$name";
+	$link_name = l( $name, file_create_url(file_build_uri($uri)));
+	
+	return $link_name;
+}//end __formate_link_name
+//----------------------------------------------------------------------------

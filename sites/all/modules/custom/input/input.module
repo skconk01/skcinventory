@@ -61,7 +61,15 @@ function input_menu() {
   );
  
 
-
+  // Demo of dynamic query.
+  $items['system/inventory'] = array(
+  		'title' => 'System Inventory Page',
+  		'description' => 'A full, paginated list of systems in the inventory.',
+  		'page callback' => 'system_inventory_page',
+  		'access arguments' => array('administer trails'),
+  		'file' => 'input_inventory_display.inc',
+  		'access callback' => TRUE,
+  );
 
   return $items;
 } // function input_menu()
@@ -74,7 +82,10 @@ function input_menu() {
  * Page callback for our general info page.
  */
 function input_example_intro() {
-  $markup = t('this site will provide an interface to collect information about the systems used by the <br/>AOSOS, JOB ZONE, CAREER TEAM');
+  $markup = '
+  This site will provide an interface to collect information about the systems used by the <br/>
+  AOSOS, JOB ZONE <span style="font-size:20px;letter-spacing: -1px;">  --- </span>  CAREER ZONE TEAM
+    ';
   return array('#markup' => $markup);
 }
 

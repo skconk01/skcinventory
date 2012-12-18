@@ -176,9 +176,9 @@ function input_base_data_1_submit($form, &$form_state) {
   $form_input['service_date_str'] = $form_state['values']['service_date'];
   
   if (module_exists('invdb')) {
-    drupal_set_message(t("module exists"));
+    //drupal_set_message(t("module exists"));
     if (function_exists('invdb_update_database')) {
-      drupal_set_message(t("funciotn exists"));
+      //drupal_set_message(t("funciotn exists"));
       invdb_update_database($db_table, $form_input);
     }
   }   
@@ -186,7 +186,9 @@ function input_base_data_1_submit($form, &$form_state) {
 
   
   // Display a message upon successful submission.
-  drupal_set_message(t('form more form submited there @n', array(@n=>$user->name)));
+  $user_name = $user->name;
+    //drupal_set_message(t('form more form submited there @n', array(@n=>$user->name)));
+    drupal_set_message("the form was successfully submited for the user ID $user_name");
 
 }//end of input_base_data_1_submit
 
