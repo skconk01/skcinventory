@@ -52,35 +52,6 @@
 	  ;
 	
 
-// 	$select = db_select('zz_team_inv', 'zti');
-// 	//$select->join('zz_system_os', 'os', 'os.zz_team_inv_inv_id = zti.inv_id', 'os.sos_type=P');
-	
-	
-	
-// 	$result = $select
-//     	->extend('PagerDefault')
-//     	->extend('TableSort')
-//     	->orderByHeader($header)
-//     	->fields('zti', array('inv_id', 'user_id', 'hostname', 'primary_os', 'ip_address', 'asset_tag' ))
-//     	//->fields('os', array('sos_version'))
-// 		->limit(3)	
-//     	;
-	
-// 	$select->condition('user_id', $user->name)
-// 	  ->fields('zti', array('user_id', 'hostname', 'ip_address', 'asset_tag'))
-// 	  ->limit(2)
-// 	  ->orderByHeader($header)
-// 	  ->orderBy('user_id', 'DESC')
-// 	  ;
-
-
- 	/* // Begin building the query. */
- 	/* $query = db_select('zz_team_inv', 'zti') */
- 	/* ->extend('PagerDefault') */
- 	/* ->extend('TableSort') */
- 	/* ->orderBy('user_id', 'DESC') */
- 	/* ->fields('zti') */
- 	/* ->limit(3); */
  	
  	
  	// Fetch the result set.
@@ -102,7 +73,7 @@
  		$stop = 'here';
  		$rows[] = array(
  				'<div style="width:20px;height:20px;float:left;margin-right:10px;background:#' . $color . '"></div>' . $row->user_id,
- 				$row->hostname,
+ 				invdb_get_hostname_link($user->name, $row->hostname),
  				__primary_os_long_name($row->primary_os),
  				invdb_primary_os_version_string($id),
  				$row->ip_address,

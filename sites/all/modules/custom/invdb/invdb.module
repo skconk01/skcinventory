@@ -7,6 +7,51 @@
  *
  */
 
+//------------------------------------------------------------------------------------
+/**
+ * will an existing database record based on the orginal hostname
+ * @method invdb_update_database_record($db_table, $form_input, $hostname);
+ * @param string $db_table
+ * @param string $data_array
+ * @param string $hostname
+ * @return integer $inv_id
+ * 
+ */
+function invdb_update_database_record($db_table, $data_array, $hostname){
+	$stop ='here';
+	$inv_id_stdClass = invdb_get_inv_id($hostname);
+	$inv_id = $inv_id_stdClass->inv_id;
+	$table = $db_table;
+	
+	try {
+		$rcv = db_update($table)
+		->fields(array(
+			 'user_id' => $data_array['name'],
+			 'asset_tag' => $data_array['fixed_asset_tag'],
+			 'serial_num' => $data_array['serial-number'],
+			 'cub_id' => $data_array['cubid'],
+			 'hostname' => $data_array['hostname'],
+			 'ip_address' => $data_array['ipaddress'],
+			 'machine_type' => $data_array['machine_type'],
+			 'machine_user' => $data_array['machine_user'],
+			 'machine_task' => $data_array['machine_task'],
+			 'service_date_eop' => $data_array['service_date_eop'],
+			 'service_date_str' => $data_array['service_date_str'],
+			 'primary_os' => $data_array['primary_os'],
+		))
+		->condition('inv_id',$inv_id,'=') 
+		->execute();
+	} catch (Exception $e) {
+		drupal_set_message(t("Sorry, that didn't work. There was an error updating the data base. $e"), 'error');
+		$inv_id = 0;
+	}
+	
+	
+	return $inv_id;
+}//end invdb_update_database_record(
+//-------------------------------------------------------------------------------------
+
+//--------------------------------------------------------------------------------------
 /**
  * function to update the database based on data from the input.module
  * @method invdb_update_database($db_table, $data_array)
@@ -463,6 +508,49 @@ function invdb_get_info_file_name_link($inv_id){
 }// end invdb_get_info_file_name_link
 //----------------------------------------------------------------------------
 
+
+/**
+ * for the hostname of the logged in user create a link to the Base System Data page 
+ * around the hostname that was passed in. for hostnames of non user systems just return 
+ * an unlinked hostname to be displayed
+ * @method invdb_get_hostname($logged_in_user, $hostname)
+ * @param string $logged_in_user
+ * @param string $hostname
+ * @return string $linded_hostname  only hostnames of the user_id will be linked
+ * 
+ * SELECT ti.user_id FROM zz_team_inv AS ti WHERE ti.hostname = @hn;
+ */
+function  invdb_get_hostname_link($logged_in_user, $hostname){
+	
+	$stop = 'here';
+	$linded_hostname = $hostname;
+	//TO DO fasion reletive  url using  _GLOBALVARS 
+	$base_system_data = 'http://10.255.128.73/inventory/input/inv/bs?hname=' . $hostname; 
+	
+	$query = ("SELECT ti.user_id FROM zz_team_inv AS ti
+			WHERE  ti.hostname ='".$hostname."'
+			");
+	
+	$result = db_query($query);
+	
+	foreach ($result as $row) {
+		$rd[] = $row;
+	}
+	
+	$id = $rd[0]->user_id;
+	
+	if ($id == $logged_in_user){
+		//<a href="http://www.w3schools.com">Visit W3Schools.com!</a>
+		$stop='here';
+		$linded_hostname = "<a href=$base_system_data> $hostname </a>"; 
+		
+	}//end if id == user_id
+	
+	
+	return $linded_hostname;
+} // end invdb_get_hostname($user_id, $hostname)
+//----------------------------------------------------------------------------
+
 //----------------------------------------------------------------------------
 /**
  * create and return a well formated link name 
@@ -485,3 +573,29 @@ function __formate_link_name($name, $link){
 	return $link_name;
 }//end __formate_link_name
 //----------------------------------------------------------------------------
+
+
+//----------------------------------------------------------------------------
+/**
+ * get all of the base values from the database to be used as the form default values
+ * @method invdb_get_values($hostname)
+ * @param string $hostname
+ * @return array $base_data_array
+ */
+//----------------------------------------------------------------------------
+function invdb_get_values($hostname){
+	
+	$stop = 'here';
+	$query = ("SELECT * FROM zz_team_inv 
+			WHERE  hostname ='".$hostname."'
+			");
+	
+	$result = db_query($query);
+	foreach ($result as $row) {
+		$rd[] = $row;
+	}
+	
+	return $rd[0];
+}// end invdb_get_values($hostname)
+//----------------------------------------------------------------------------
+

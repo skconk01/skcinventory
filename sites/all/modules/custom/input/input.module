@@ -61,6 +61,19 @@ function input_menu() {
   );
  
 
+  //display user's input data
+  $items['system/input_data'] = array(
+  		'title' => 'These Base System Data Were Just Input',
+  		'description' => 'Present the data that was just entered.',
+  		'page callback' => 'data_input_page',
+  		'file' => 'input_data_input_display.inc',
+  		//'page arguments' => array(3, 4),
+  		'access callback' => TRUE,
+  		//'access arguments' => array('access arguments page'),
+  		'type' => MENU_CALLBACK,
+  		);
+  
+  
   // Demo of dynamic query.
   $items['system/inventory'] = array(
   		'title' => 'System Inventory Page',
