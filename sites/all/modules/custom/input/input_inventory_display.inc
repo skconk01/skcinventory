@@ -74,8 +74,9 @@
  		$rows[] = array(
  				'<div style="width:20px;height:20px;float:left;margin-right:10px;background:#' . $color . '"></div>' . $row->user_id,
  				invdb_get_hostname_link($user->name, $row->hostname),
- 				__primary_os_long_name($row->primary_os),
- 				invdb_primary_os_version_string($id),
+ 				__primary_os_long_name($row->primary_os,$id),
+ 				//invdb_primary_os_version_string($id),
+ 				__primary_os_version_string($id),
  				$row->ip_address,
  				$row->asset_tag,
  				invdb_get_info_file_name_link($id),
@@ -117,19 +118,57 @@
  
  /**
   * private method to return Linux or Windows based on the input letter
+  * new we will also make this a link to the os page 
   * @method __primary_os_long_name($os)
   * @param string $os
   * @return string $name
   */
- function __primary_os_long_name($os){
+ function __primary_os_long_name($os,$zz_team_inv_inv_id){
  	$name = 'unknown';
  	if ($os === 'W'){
  		$name = 'Windows';
  	}elseif ($os === 'L'){
  		$name = 'Linux';
  	}
+ 	$stop = 'here';
+ 	$vstr = invdb_primary_os_version_string($zz_team_inv_inv_id);
+ 	if ($vstr == 'NotFound'){
+ 		$stop = 'here';
+ 		$os = "<font color='#FF0000'>$vstr</font>";
+ 		$link = $name;
+ 	}else {
+ 		$server_name = $_SERVER['HTTP_HOST'];
+ 		$base_link = 'http://'.$server_name.'/inventory/system/input_secondary_os_data?invid='.$zz_team_inv_inv_id;
+ 		$link = "<a href=$base_link> $name </a>";
+ 	}
+
  	
- 	return $name;
+ 	
+ 	
+ 	
+ 	return $link;
  }// end __primary_os_long_name
  
+ //---------------------------------------------------------------------------
+ /**
+  * this method will style the OS Version. if NotFound is returned then make it red
+  * @method __primary_os_version_string($id)
+  * @param int $id  the id of the computer to check
+  * @return string $styled_link
+  * 
+  */
+ //---------------------------------------------------------------------------
+ function __primary_os_version_string($id){
+ 	
+ 	$stop = 'here';
+ 	$vstr = invdb_primary_os_version_string($id);
+ 	$os = $vstr;
+ 	if ($vstr == 'NotFound'){
+ 		$stop = 'here';
+ 		$os = "<font color='#FF0000'>$vstr</font>";
+ 	}
+ 	
+ 	return $os;
+ }//end __primary_os_version_string($id)
+ //---------------------------------------------------------------------------
  

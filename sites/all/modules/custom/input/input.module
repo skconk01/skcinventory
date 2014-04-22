@@ -74,6 +74,32 @@ function input_menu() {
   		);
   
   
+  //display user input for the os data
+  $items['system/input_os_data'] = array(
+  		'title' => 'This OS was just entered please verify',
+  		'description' => 'Present the OS version string data that was just entered.',
+  		'page callback' => 'data_os_input_page',
+  		'file' => 'input_data_input_display.inc',
+  		//'page arguments' => array(3, 4),
+  		'access callback' => TRUE,
+  		//'access arguments' => array('access arguments page'),
+  		'type' => MENU_CALLBACK,
+  );
+  
+  
+  //display user input for the secondary os data
+  $items['system/input_secondary_os_data'] = array(
+  		'title' => 'Secondary OS data for this system',
+  		'description' => 'Present the secondary OS version string data that was just entered.',
+  		'page callback' => 'data_secd_os_input_page',
+  		'file' => 'input_data_input_display.inc',
+  		//'page arguments' => array(3, 4),
+  		'access callback' => TRUE,
+  		//'access arguments' => array('access arguments page'),
+  		'type' => MENU_CALLBACK,
+  );
+  
+  
   // Demo of dynamic query.
   $items['system/inventory'] = array(
   		'title' => 'System Inventory Page',

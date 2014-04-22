@@ -100,7 +100,7 @@ function invdb_update_database($db_table, $data_array) {
 function invdb_update_os_table($data){
 
   $stop = 'here';
-  dpm($data);
+  //  dpm($data);
   $rd['zz_team_inv_inv_id'] = $data['values']['step1']['hostname'];
   //$posarray = $data['step2'];
 
@@ -112,7 +112,9 @@ function invdb_update_os_table($data){
   $ck_prmary_os = $ck = invdb_ck_if_primary_os_in_table($rd['zz_team_inv_inv_id']);
   
   if(!$ck_prmary_os){
-  	__invdb_load_os_data($rd); // load the os table with primary os data
+  	$update = __invdb_load_os_data($rd); // load the os table with primary os data
+  }else{
+  	$update = __invdb_update_os_data($rd);
   }
 
   $num_sos = $data['values']['step2']['os_secd_num'];
@@ -163,6 +165,33 @@ function __invdb_load_os_data($rd){
   
   return $sos_id;
 }// end of invdb_load_os_data($rd){
+//------------------------------------------------------------------------------------------
+
+
+//------------------------------------------------------------------------------------------
+/**
+ * method to update the os data of an existing entery
+ * @method __invdb_update_os_data($rd)
+ * @param array $rd   row data
+ * @return integer $sos_id
+ */
+function __invdb_update_os_data($rd){
+	
+	$sos_name = __invdb_os_name($rd['sos_name']);
+	$ck_system = $rd['zz_team_inv_inv_id'];
+	$table = 'zz_system_os';
+	$sos_id = db_update($table)
+	 ->fields(array(
+	 		//'sos_name' => $rd['sos_name'],
+	 		'sos_name' => $sos_name,
+	 		'sos_version'=> $rd['sos_version'],
+	 		))
+	 ->condition('zz_team_inv_inv_id', $ck_system, '=')
+	 ->condition('sos_type', 'P', '=')
+	 ->execute();
+	
+	return $sos_id;
+}//end of __invdb_update_os_data
 //------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------
@@ -599,3 +628,66 @@ function invdb_get_values($hostname){
 }// end invdb_get_values($hostname)
 //----------------------------------------------------------------------------
 
+
+//----------------------------------------------------------------------------
+/**
+ * this method will return the hostname and all of the seconday os data
+ * associated with that hostname
+ * @method invdb_get_sec_os_data($zz_team_inv_inv_id)
+ * @param int $zz_team_inv_inv_id data base id of system inv_id
+ * @return array $os_data
+ */
+//----------------------------------------------------------------------------
+function invdb_get_sec_os_data($zz_team_inv_inv_id){
+	
+	$query = db_select('zz_team_inv', 'ti');
+	$query->join('zz_system_os', 'os', 'ti.inv_id = os.zz_team_inv_inv_id'); //JOIN node with users
+	
+	
+	$result = $query
+	->fields('ti', array('user_id', 'hostname'))
+	->fields('os', array('sos_id','sos_name','sos_version','sos_type'))
+	->condition('zz_team_inv_inv_id', $zz_team_inv_inv_id,'=')
+	->execute();
+	
+	foreach ($result as $row){
+		$os_data[] = array(
+				$row->sos_id,
+				$row->user_id,
+				$row->hostname,
+				$row->sos_name,
+				$row->sos_version,
+				$row->sos_type,
+				);
+	};
+	
+	return  $os_data;
+}//end invdb_get_sec_os_data
+//----------------------------------------------------------------------------
+
+//----------------------------------------------------------------------------
+/**
+ * check for an entery for sos_version as P primary os and return
+ * @method invdb_ck_previous_primary_os($inv_id);
+ * @param int $inv_id id of the system checking
+ * @return string $sos_version  return empty string if no entry
+ */
+//----------------------------------------------------------------------------
+function invdb_ck_previous_primary_os($inv_id){
+	
+	$query = db_select('zz_system_os', 'os');
+	$result = $query
+	->fields('os', array('sos_version'))
+	->condition('zz_team_inv_inv_id', $inv_id,'=')
+	->condition('sos_type', 'P','=')
+	->execute();
+	
+	foreach ($result as $row){
+		$sos_version =	$row->sos_version;
+	};
+	
+	
+	return $sos_version;
+	
+}//end invdb_ck_previous_primary_os
+//----------------------------------------------------------------------------

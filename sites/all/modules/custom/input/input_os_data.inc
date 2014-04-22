@@ -28,7 +28,7 @@ global $user;
    
 
 
-  //$computer_list = drupal_map_assoc( array('bonk', 'chobani', 'tiger', ));
+ 
 
 // get a list of computers used by this user
   $computer_list = invdb_get_computer_list($name);
@@ -126,11 +126,11 @@ global $user;
       }elseif ($primary_os == 'L'){
       	// linux operating system
       	$stop = 'here';
-      	$pre_form_val = '';
+      	$pre_form_val = invdb_ck_previous_primary_os($inv_id);
       	if(isset($form_state['storage']['values']['step2']['os_version'])){
       		$pre_form_val = $form_state['storage']['values']['step2']['os_version'];
       	}
-      	$form['step2'] =_case_2_linux($hname, $pre_form_val);
+      	$form['step2'] =_case_2_linux($hostname, $pre_form_val);
       }
 
 
@@ -139,7 +139,7 @@ global $user;
 
     case 3:
       $stop = 'here';
-      dpm($form_state);	
+      //dpm($form_state);	
      // $hn = $form_state['storage']['values']['step1']['hostname'];
      $c3hostname = $form_state['storage']['hname'];
       $sosnum = $form_state['values']['step2']['os_secd_num'];
@@ -223,6 +223,8 @@ global $user;
   return $form;
 }
 
+//------------------------------------------------------------------------
+
 function input_os_data_1_callback($form, $form_state) {
   $stop ='here';
   return $form;
@@ -238,6 +240,7 @@ function input_os_data_1_callback($form, $form_state) {
 function input_os_data_1_submit($form, &$form_state) {
 
   $stop = 'here';  
+  global $user; // to get access to the name curent user
   
   // Save away the current information.
   $current_step = 'step' . $form_state['storage']['step'];
@@ -282,13 +285,25 @@ function input_os_data_1_submit($form, &$form_state) {
     
     invdb_update_os_table($form_data);
     
+    $id_stdClass = invdb_get_inv_id($form_state['storage']['hname']);
+    $id = $id_stdClass->inv_id;
+    
+    // Display a message upon successful submission.
+    $user_name = $user->name;
+    drupal_set_message("the form was successfully submited for the user ID ==> $user_name");
+    $options = array($id);
+    $s = implode("-",$options);
+    $page = 'system/input_os_data';
+    $url = __build_url($page, $s);
+    drupal_goto($url);
+    
     return;
   }
 
   // Otherwise, we still have work to do.
   $form_state['rebuild'] = TRUE;
 }
-
+//----------------------------------------------------------------------------
 
 
 //------------------------------------------------------------------------------------------------------------------
@@ -345,7 +360,7 @@ function _case_2_linux($hostname, $pi){
   
 
   $form['step2']['inst'] = array(
-    '#title' => 'Determin the Linux type and version',
+    '#title' => 'Click here: Linux type and version insturctions',
     '#type' => 'fieldset',
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
@@ -378,4 +393,32 @@ function _case_2_linux($hostname, $pi){
 } //end _case_2_linux
 
 //------------------------------------------------------------------------------------------------------------------
+
+
+//----------------------------------------------------------------------------
+/**
+ * build the url to go to
+ * @method __build_url($page, $data='null')
+ * @param string $page page going to
+ * @param string $data  the information to appened if there is any
+ * @return string $url
+ */
+function __build_url($page, $data=NULL){
+	$url = 'bidke';
+
+	$host = $_SERVER['HTTP_HOST'];
+
+	$url = 'http://'.$host.'/inventory/'.$page;
+
+	if ($data){
+		$url = $url.'?data='.$data;
+	}
+
+
+	return $url;
+}//end __build_url($page, $data='null')
+//----------------------------------------------------------------------------
+
+
+
 

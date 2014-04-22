@@ -73,7 +73,7 @@ function data_input_page(){
 			        );
 	$k = ('<p>' . t('Simple page: The quick brown fox jumps over the lazy dog.') . '</p>');
 	
-	# append the k message to the output
+	//append the k message to the output
 	$output .= $k;
 	
 	
@@ -81,6 +81,120 @@ function data_input_page(){
 	
 	return  $output;
 }// end data_input_page
+//-----------------------------------------------------------------------------------------
+
+
+//-----------------------------------------------------------------------------------------
+/**
+ * display the OS idenifaction data that was entered to the data base
+ * @method data_os_input_display($hostname)
+ * @param string $hostname
+ * @return html $output
+ */
+//-----------------------------------------------------------------------------------------
+function data_os_input_page(){
+	
+	$stop = 'here';
+	
+	if (isset($_GET['data'])){
+		$g = $_GET['data'];
+		$ar = explode("-",$g);
+	
+	}
+	
+	
+	$inv_id = $ar[0];
+	$header = array(
+			array('data' => 'User Id', ),
+			array('data' => 'Host Name', ),
+			array('data' => 'Primary OS',  ),
+			array('data' => 'Secondary OS Num'),
+			array('data' => 'OS Version'),
+			
+	);
+	
+	
+	//$select = db_select('zz_team_inv', 'zti')
+	//http://drupal.stackexchange.com/questions/6921/select-fields-from-two-tables-using-db-select
+	
+	
+	$stop = 'here';
+	
+	$zz_team_inv_inv_id = $_GET['data'];
+	$query = db_select('zz_team_inv', 'ti');
+	$query->join('zz_system_os', 'os', 'ti.inv_id = os.zz_team_inv_inv_id'); //JOIN node with users
+	$result = $query
+	->fields('ti', array('user_id', 'hostname'))
+	->fields('os', array('sos_type', 'sos_name','sos_version'))
+	->condition('zz_team_inv_inv_id', $zz_team_inv_inv_id,'=')
+	->condition('sos_type', 'P','=')
+	->execute();
+	
+	$sec_os_results = db_select('zz_system_os', 'os')
+	->fields('os',array('sos_type'))
+	->condition('zz_team_inv_inv_id', $zz_team_inv_inv_id,'=')
+	->condition('sos_type', 'S','=')
+	->execute();
+	$num_s_os = $sec_os_results->rowCount();
+	
+	$sec_os_link = __create_secd_os_link($zz_team_inv_inv_id, $num_s_os);
+	
+	foreach ($result as $row) {
+		$stop = 'here';
+		$rows[] = array(
+				$row->user_id,
+				$row->hostname,
+				$row->sos_name,
+				$sec_os_link,
+				$row->sos_version,
+				);
+		
+	};//end foreach
+	
+	
+	
+	$output = theme('table', array('header' => $header,
+			'rows' => $rows,)
+	);
+	
+	$k = ('<p>' . t('Simple page: The quick brown fox jumps over the lazy dog.') . '</p>');
+	
+	return $output;
+}//end data_os_input_display(
+//-----------------------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------------------
+/**
+ * this method will display the data for the secondary os for a given system
+ * @method data_secd_os_input_display()
+ */
+//-----------------------------------------------------------------------------------------
+function data_secd_os_input_page(){
+	//data_secd_os_input_page
+	$stop ='here';
+	
+	$zz_team_inv_inv_id = $_GET['invid'];
+	
+	$os_info = invdb_get_sec_os_data($zz_team_inv_inv_id);
+	
+	$header = array(
+			array('data' => 'ID'),
+			array('data' => 'User Id', ),
+			array('data' => 'Host Name', ),
+			array('data' => 'OS Name',  ),
+			array('data' => 'OS Version'),
+			array('data' => 'OS Type'),
+				
+	);
+	
+		
+	$output = theme('table', array('header' => $header,
+			'rows' => $os_info,)
+	);
+	
+	$k = ('<p>' . t('Simple page: The quick brown fox jumps over the lazy dog zippy do.') . '</p>');
+	return $output;
+}//end data_secd_os_input_display()
 //-----------------------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------------------
@@ -174,4 +288,26 @@ function __get_machine_type($type_letter){
 	
 	return $machine_type;
 }// end __get_machine_type
+//------------------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------------------
+/**
+ * this method will create the link to take you to the page that displays the secondary os
+ * @method __create_secd_os_link($zz_team_inv_inv_id, $num_sec_os)
+ * @param int $zz_team_inv_inv_id  the id of the system with sec os
+ * @param int $num_sec_os
+ * @return string $link
+ */
+//------------------------------------------------------------------------------------------
+function __create_secd_os_link($zz_team_inv_inv_id, $num_sec_os){
+	
+	$stop = 'here';
+	$server_name = $_SERVER['HTTP_HOST'];
+	$base_link = 'http://'.$server_name.'/inventory/system/input_secondary_os_data?invid='.$zz_team_inv_inv_id;
+	
+	
+	$link = "<a href=$base_link> $num_sec_os </a>";
+	
+	return $link;
+}//end __create_secd_os_link($zz_team_inv_inv_id, $num_sec_os){
 //------------------------------------------------------------------------------------------
